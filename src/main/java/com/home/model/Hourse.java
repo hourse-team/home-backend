@@ -19,7 +19,7 @@ public class Hourse {
 
     private Integer price;
 
-    private Integer acreage;
+    private Integer acreage;//面积
 
     private Integer status;//0出租，1出售
 
