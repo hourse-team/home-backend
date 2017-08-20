@@ -28,11 +28,12 @@ public class Routes {
     @Bean
     public RouterFunction<?> userRoutes(){
         return route(POST("/api/login").and(accept(MediaType.APPLICATION_JSON)),userhandler::getUser)
-                .and(route(GET("/api/hourses/{userId}").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::getHourses)
+                        .and(route(GET("/api/hourses/{userId}").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::getHourses)
                         .and(route(GET("/api/hourse/{hourseId}").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::getHourse))
                         .and(route(PUT("/api/update").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::update))
                         .and(route(DELETE("/api/delete/{hourseId}").and(type),hourseHandler::delete)))
-                .and(route(POST("/api/hourse/create").and(type),hourseHandler::create));
+                        .and(route(POST("/api/hourse/create").and(type),hourseHandler::create))
+                .and(route(GET("/api/index").and(accept(MediaType.TEXT_HTML)),userhandler::index));
     }
 
 //    @Bean

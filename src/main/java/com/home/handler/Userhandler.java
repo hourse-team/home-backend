@@ -4,11 +4,14 @@ import com.home.model.User;
 import com.home.repository.UserRepository;
 import com.mongodb.util.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+
+import java.util.HashMap;
 
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
@@ -26,5 +29,10 @@ public class Userhandler {
         Mono<ServerResponse> notFound = ServerResponse.notFound().build();
         return user.flatMap(use -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(use)))
                 .switchIfEmpty(notFound);
+    }
+
+    public Mono<ServerResponse> index(ServerRequest request){
+        Mono<ClassPathResource> cp = Mono.just(new ClassPathResource("templates/index.html"));
+        return ServerResponse.ok().contentType(MediaType.TEXT_HTML).body(cp,ClassPathResource.class);
     }
 }
