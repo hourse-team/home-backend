@@ -2,7 +2,10 @@ package com.home.handler;
 
 import com.home.model.Hourse;
 import com.home.repository.HourseRepository;
+import com.home.vo.ApiResponse;
+import com.home.vo.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -11,6 +14,8 @@ import org.springframework.web.reactive.function.server.ServerRequestExtensionsK
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
@@ -24,15 +29,22 @@ public class HourseHandler {
 
     public Mono<ServerResponse> getHourses(ServerRequest request){
         String userId = request.pathVariable("userId");
+        PageRequest page = request.bodyToMono(PageRequest.class).block();
         Flux<Hourse> hourses = hourseRepository.findByUserIdOrState(userId,0);
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(hourses,Hourse.class);
+        List<Hourse> fbi= hourses.collectList().block();
+        fbi = page.getPageSize()*page.getPageNumber() > fbi.size() ? fbi.subList((page.getPageNumber()-1)*page.getPageSize(),fbi.size()) :
+                fbi.subList((page.getPageNumber()-1)*page.getPageSize(),page.getPageSize()*page.getPageNumber());
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(fromObject(new ApiResponse(200,"success",fbi)));
     }
 
     public Mono<ServerResponse> getHourse(ServerRequest request){
         String hourseId = request.pathVariable("hourseId");
         Mono<Hourse> hourse = hourseRepository.findById(hourseId);
-        Mono<ServerResponse> notFound = ServerResponse.notFound().build();
-        return hourse.flatMap(data -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(data)))
+        Mono<ServerResponse> notFound =  ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(fromObject(new ApiResponse(201,"fail",null)));
+        return hourse.flatMap(data -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(fromObject(new ApiResponse(200,"success",data))))
                 .switchIfEmpty(notFound);
     }
 
@@ -40,7 +52,8 @@ public class HourseHandler {
         Hourse hourse = request.bodyToMono(Hourse.class).block();
         Mono<Hourse> newHourse = hourseRepository.save(hourse);
 //        System.out.println(newHourse.block().toString());
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(newHourse,Hourse.class);
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(fromObject(new ApiResponse(200,"success",newHourse)));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request){
@@ -54,6 +67,7 @@ public class HourseHandler {
     public Mono<ServerResponse> create(ServerRequest request){
         Hourse hourse = request.bodyToMono(Hourse.class).block();
         Mono<Hourse> newHourse = hourseRepository.save(hourse);
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(newHourse,Hourse.class);
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(fromObject(new ApiResponse(200,"success",newHourse)));
     }
 }
