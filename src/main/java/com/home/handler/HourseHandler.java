@@ -3,6 +3,7 @@ package com.home.handler;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home.model.Hourse;
+import com.home.model.Image;
 import com.home.repository.HourseRepository;
 import com.home.vo.ApiResponse;
 import com.home.vo.PageRequest;
@@ -22,7 +23,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
@@ -76,20 +79,26 @@ public class HourseHandler {
         String images = request.attribute("images").get().toString();
         ObjectMapper objectMapper = new ObjectMapper();
         List<String> imgs = objectMapper.readValue(images, new TypeReference<List<String>>() {});
+        Collection<Image> imgPath = new ArrayList<>();
         BASE64Decoder decoder = new BASE64Decoder();
         for(String img : imgs) {
+            Image image = new Image();
+            String uuid = UUID.randomUUID().toString();
             byte[] b = decoder.decodeBuffer(img);
             for(int i=0;i<b.length;++i) {
                 if(b[i]<0) {//调整异常数据
                     b[i]+=256;
                 }
             }
-            String imgFilePath = "/home/zhang/image";//新生成的图片
+            String imgFilePath = "/home/zhang/image/"+uuid+".jpg";//新生成的图片
+            image.setImageUrl(imgFilePath);
             OutputStream out = new FileOutputStream(imgFilePath);
             out.write(b);
             out.flush();
             out.close();
+            imgPath.add(image);
         }
+        hourse.setImages(imgPath);
         Mono<Hourse> newHourse = hourseRepository.save(hourse);
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(fromObject(new ApiResponse(200,"success",newHourse)));
