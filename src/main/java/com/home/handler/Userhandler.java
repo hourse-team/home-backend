@@ -61,6 +61,6 @@ public class Userhandler {
         Mono<ServerResponse> notFound =  ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(fromObject(new ApiResponse(201,"fail",null)));
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success","删除成功"))).switchIfEmpty(notFound);
+                .body(fromObject(new ApiResponse(200,"success","删除成功")));
     }
 }

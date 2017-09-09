@@ -62,7 +62,7 @@ public class HourseHandler {
         Mono<Hourse> newHourse = hourseRepository.save(hourse);
 //        System.out.println(newHourse.block().toString());
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success",newHourse)));
+                .body(fromObject(new ApiResponse(200,"success",newHourse.block())));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request){

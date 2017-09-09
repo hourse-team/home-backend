@@ -185,6 +185,29 @@ home web project
        "status": 200,
        "msg": "success",
        "data": {
-           "scanAvailable": true
+           "id": "59b39abb21d073191403e50f",
+           "title": "正商新蓝钻C区",
+           "price": 160,
+           "acreage": 108,
+           "status": 1,
+           "houseOwnerName": "张永亮",
+           "houseOwnerPhone": "18239926789",
+           "address": "管城区航海东路",
+           "infomation": "急用钱",
+           "userId": "59aad72021d0731974afcabf",
+           "createDate": null,
+           "updateDate": 1504944010241,
+           "state": 1,
+           "images": [
+               {
+                   "imageUrl": "www.baidu.com"
+               },
+               {
+                   "imageUrl": "www.google.com"
+               }
+           ]
        }
    }
+   
+删除用户接口: /api/deleteUser/{userId}  DELETE
+
