@@ -210,4 +210,8 @@ home web project
    }
    
 删除用户接口: /api/deleteUser/{userId}  DELETE
-
+成功:{
+             "status": 200,
+             "msg": "success",
+             "data": null
+         }
