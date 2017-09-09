@@ -1,10 +1,12 @@
 # home
-home web project
+## Home web project
 
-登陆接口: /api/login  POST
-接口参数: {"username":"siwang","password":"xuyans"}
-成功:{"status":200,"msg":"success","data":{"id":"59aad95f21d07310f8e8d453","username":"siwang","password":"xuyan","type":1}}
-失败:{"status":201,"msg":"fail","data":null}
+'''
+     登陆接口: /api/login  POST
+     接口参数: {"username":"siwang","password":"xuyans"}
+     成功:{"status":200,"msg":"success","data":     {"id":"59aad95f21d07310f8e8d453","username":"siwang","password":"xuyan","type":1}}
+     失败:{"status":201,"msg":"fail","data":null}
+''' 
 
 创建房产信息接口: /api/hourse/create POST
 接口参数:{"title":"正商新蓝钻","price":200,"acreage":123,"status":1,"houseOwnerName":"李坤","houseOwnerPhone":"18239926789",
