@@ -2,16 +2,43 @@
 ## Home web project
 > ### 1 登陆接口: /api/login  POST
 ```     
-     接口参数: {"username":"siwang","password":"xuyans"}
-     成功:{"status":200,"msg":"success","data":     {"id":"59aad95f21d07310f8e8d453","username":"siwang","password":"xuyan","type":1}}
-     失败:{"status":201,"msg":"fail","data":null}
+ 接口参数: {"username":"siwang","password":"xuyans"}
+ 成功:
+      {
+         "status": 200,
+         "msg": "success",
+         "data": {
+             "id": "59aad95f21d07310f8e8d453",
+             "username": "siwang",
+             "password": "xuyan",
+             "type": 1
+         }
+     }
+失败:{"status":201,"msg":"fail","data":null}
 ```
 
 > ### 2 创建房产信息接口: /api/hourse/create POST
 ```
-     接口参数:{"title":"正商新蓝钻","price":200,"acreage":123,"status":1,"houseOwnerName":"李坤","houseOwnerPhone":"18239926789",
-     	"address":"中原区新园区","infomation":"面积是123平米","userId":"59aad72021d0731974afcabf","images":[{"imageUrl":"www.baidu.com"},
-     	{"imageUrl":"www.google.com"}],"state":1
+接口参数:
+     {
+         "title": "正商新蓝钻",
+         "price": 200,
+         "acreage": 123,
+         "status": 1,
+         "houseOwnerName": "李坤",
+         "houseOwnerPhone": "18239926789",
+         "address": "中原区新园区",
+         "infomation": "面积是123平米",
+         "userId": "59aad72021d0731974afcabf",
+         "images": [
+             {
+                 "imageUrl": "www.baidu.com"
+             },
+             {
+                 "imageUrl": "www.google.com"
+             }
+         ],
+         "state": 1
      }
 成功:{
        "status": 200,
@@ -185,10 +212,28 @@
       }
       
 更新房产信息接口: /api/update  PUT
-参数:{"id":"id",title":"正商新蓝钻","price":200,"acreage":123,"status":1,"houseOwnerName":"李坤","houseOwnerPhone":"18239926789",
-        	"address":"中原区新园区","infomation":"面积是123平米","userId":"59aad72021d0731974afcabf","images":[{"imageUrl":"www.baidu.com"},
-        	{"imageUrl":"www.google.com"}],"state":1
-        }
+参数:
+     {
+         "id": "id0",
+         "title": "正商新蓝钻",
+         "price": 200,
+         "acreage": 123,
+         "status": 1,
+         "houseOwnerName": "李坤",
+         "houseOwnerPhone": "18239926789",
+         "address": "中原区新园区",
+         "infomation": "面积是123平米",
+         "userId": "59aad72021d0731974afcabf",
+         "images": [
+             {
+                 "imageUrl": "www.baidu.com"
+             },
+             {
+                 "imageUrl": "www.google.com"
+             }
+         ],
+         "state": 1
+     }
 成功:{
        "status": 200,
        "msg": "success",
