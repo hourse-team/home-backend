@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedHashSet;
 
 /**
@@ -32,6 +33,26 @@ public class Hourse {
     private String infomation;
 
     private String userId;
+
+    private Date createDate;
+
+    private Date updateDate;
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+    public Date getUpdateDate() {
+        return updateDate;
+    }
+
+    public void setUpdateDate(Date updateDate) {
+        this.updateDate = updateDate;
+    }
 
     public String getUserId() {
         return userId;

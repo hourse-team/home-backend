@@ -41,9 +41,13 @@ public class Userhandler {
 
     public Mono<ServerResponse> register(ServerRequest request){
         User newUser = request.bodyToMono(User.class).block();
+        if(newUser.getType() == null || newUser.getType() != 1 || newUser.getType() != 0){
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .body(fromObject(new ApiResponse(202,"error","未指定用户类型")));
+        }
         Mono<User> user = userRepository.findByUsername(newUser.getUsername());
-        System.out.println(user.block());
-        if(user.block() == null){
+        User use = user.block();
+        if(use == null){
            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                     .body(fromObject(new ApiResponse(200,"success",userRepository.insert(newUser).block())));
         }
@@ -54,7 +58,9 @@ public class Userhandler {
     public Mono<ServerResponse> deleteUser(ServerRequest request){
         String userId = request.pathVariable("userId");
         Mono<Void> data = userRepository.deleteById(userId);
+        Mono<ServerResponse> notFound =  ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(fromObject(new ApiResponse(201,"fail",null)));
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success","删除成功")));
+                .body(fromObject(new ApiResponse(200,"success","删除成功"))).switchIfEmpty(notFound);
     }
 }
