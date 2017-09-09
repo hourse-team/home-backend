@@ -68,7 +68,7 @@ public class HourseHandler {
     public Mono<ServerResponse> delete(ServerRequest request){
         String hourseId = request.pathVariable("hourseId");
         Mono<Void> rs = hourseRepository.deleteById(hourseId);
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success","操作成功")));
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",rs.block())));
     }
 
     public Mono<ServerResponse> create(ServerRequest request){
