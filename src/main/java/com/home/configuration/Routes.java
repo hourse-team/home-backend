@@ -39,12 +39,4 @@ public class Routes {
                 .and(route(DELETE("/api/deleteUser/{userId}").and(type),userhandler::deleteUser));
     }
 
-//    @Bean
-//    public RouterFunction<?> hourseRoutes(){
-//        return route(GET("/api/hourses/{userId}").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::getHourses)
-//                .and(route(GET("/api/hourse/{hourseId}").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::getHourse))
-//                .and(route(PUT("/api/update").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::update))
-//                .and(route(DELETE("/api/delete/{hourseId}").and(type),hourseHandler::delete));
-//    }
-//
 }
