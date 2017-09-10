@@ -37,6 +37,9 @@ public class HourseHandler {
     public Mono<ServerResponse> getHourses(ServerRequest request){
         String userId = request.pathVariable("userId");
         PageRequest page = request.bodyToMono(PageRequest.class).block();
+        if(page == null){
+            page = new PageRequest();
+        }
         String title = (String) request.attribute("name").orElse(null);
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
         Flux<Hourse> hourses;
@@ -46,7 +49,7 @@ public class HourseHandler {
             hourses = hourseRepository.findByUserIdOrStateAndTitleLike(sort,userId,0,title);
         }
         List<Hourse> fbi= hourses.collectList().block();
-        Integer totalCount = fbi.size()/page.getPageSize();
+        Integer totalCount = (int)Math.ceil(fbi.size()/page.getPageSize());
         fbi = page.getPageSize()*(page.getPageNumber()+1) > fbi.size() ? fbi.subList((page.getPageNumber())*page.getPageSize(),fbi.size()) :
                 fbi.subList((page.getPageNumber())*page.getPageSize(),page.getPageSize()*(page.getPageNumber()+1));
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
