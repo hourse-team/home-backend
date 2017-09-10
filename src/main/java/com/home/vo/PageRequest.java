@@ -5,9 +5,9 @@ package com.home.vo;
  */
 public class PageRequest {
 
-    private Integer pageSize;
+    private Integer pageSize = 10;
 
-    private Integer pageNumber;
+    private Integer pageNumber = 0;
 
     public Integer getPageSize() {
         return pageSize;

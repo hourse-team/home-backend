@@ -3,17 +3,21 @@ package com.home.handler;
 import com.home.model.User;
 import com.home.repository.UserRepository;
 import com.home.vo.ApiResponse;
+import com.home.vo.PageRequest;
 import com.mongodb.util.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 
+import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 /**
@@ -41,7 +45,7 @@ public class Userhandler {
 
     public Mono<ServerResponse> register(ServerRequest request){
         User newUser = request.bodyToMono(User.class).block();
-        if(newUser.getType() == null || newUser.getType() != 1 || newUser.getType() != 0){
+        if(newUser.getType() == null || (newUser.getType() != 1 && newUser.getType() != 0)){
             return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                     .body(fromObject(new ApiResponse(202,"error","未指定用户类型")));
         }
@@ -62,5 +66,25 @@ public class Userhandler {
 //                .body(fromObject(new ApiResponse(201,"fail",null)));
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(fromObject(new ApiResponse(200,"success",data.block())));
+    }
+
+    public Mono<ServerResponse> getAllUser(ServerRequest request){
+        PageRequest page = request.bodyToMono(PageRequest.class).block();
+        if(page == null){
+            page = new PageRequest();
+        }
+        int end;
+        Flux<User> users = userRepository.findAll(Sort.by(new Sort.Order(DESC,"createDate")));
+        Long count = users.count().block();
+        users.range(page.getPageNumber()*page.getPageSize(),end = (page.getPageNumber()+1)*page.getPageSize() > count ?
+                count.intValue() : (page.getPageNumber()+1)*page.getPageSize().intValue());
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(fromObject(new ApiResponse(200,"success",users.collectList().block(),
+                        (int) Math.ceil(count.doubleValue()/page.getPageSize()),page.getPageNumber(),page.getPageSize())));
+    }
+    public static void main(String[] args){
+            Flux.just(1,2,3,4,5).range(2, 3)
+                    .map(i -> "" + i).subscribe(System.out::println);
+
     }
 }

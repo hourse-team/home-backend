@@ -36,7 +36,8 @@ public class Routes {
                         .and(route(POST("/api/hourse/create").and(type),hourseHandler::create))
                 .and(route(GET("/api/index").and(accept(MediaType.TEXT_HTML)),userhandler::index))
                 .and(route(POST("/api/account").and(type),userhandler::register))
-                .and(route(DELETE("/api/deleteUser/{userId}").and(type),userhandler::deleteUser));
+                .and(route(DELETE("/api/deleteUser/{userId}").and(type),userhandler::deleteUser))
+                .and(route(GET("/api/account").and(type),userhandler::getAllUser));
     }
 
 }

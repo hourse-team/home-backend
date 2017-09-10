@@ -11,4 +11,6 @@ import reactor.core.publisher.Flux;
 public interface HourseRepository extends ReactiveMongoRepository<Hourse,String>{
 
     Flux<Hourse> findByUserIdOrState(Sort sort, String userId, Integer state);
+
+    Flux<Hourse> findByUserIdOrStateAndTitleLike(Sort sort,String userId,Integer state,String title);
 }

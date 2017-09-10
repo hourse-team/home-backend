@@ -37,13 +37,20 @@ public class HourseHandler {
     public Mono<ServerResponse> getHourses(ServerRequest request){
         String userId = request.pathVariable("userId");
         PageRequest page = request.bodyToMono(PageRequest.class).block();
+        String title = (String) request.attribute("name").orElse(null);
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
-        Flux<Hourse> hourses = hourseRepository.findByUserIdOrState(sort,userId,0);
+        Flux<Hourse> hourses;
+        if(title == null) {
+            hourses = hourseRepository.findByUserIdOrState(sort, userId, 0);
+        } else {
+            hourses = hourseRepository.findByUserIdOrStateAndTitleLike(sort,userId,0,title);
+        }
         List<Hourse> fbi= hourses.collectList().block();
+        Integer totalCount = fbi.size()/page.getPageSize();
         fbi = page.getPageSize()*(page.getPageNumber()+1) > fbi.size() ? fbi.subList((page.getPageNumber())*page.getPageSize(),fbi.size()) :
                 fbi.subList((page.getPageNumber())*page.getPageSize(),page.getPageSize()*(page.getPageNumber()+1));
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success",fbi)));
+                .body(fromObject(new ApiResponse(200,"success",fbi,totalCount,page.getPageNumber(),page.getPageSize())));
     }
 
     public Mono<ServerResponse> getHourse(ServerRequest request){

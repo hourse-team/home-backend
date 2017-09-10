@@ -3,6 +3,8 @@ package com.home.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 /**
  * Created by Administrator on 2017/8/19.
  */
@@ -16,6 +18,16 @@ public class User {
     private String password;
 
     private Integer type;//0代表业务员，1代表管理员
+
+    private Date createDate;
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
 
     public String getId() {
         return id;
