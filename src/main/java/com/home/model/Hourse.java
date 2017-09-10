@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -73,7 +74,15 @@ public class Hourse {
     private Integer state;//0公开，1私有
 
     @Field("images")
-    private Collection<Image> images = new LinkedHashSet<>();
+    private Collection<String> images = new ArrayList<>();
+
+    public Collection<String> getImages() {
+        return images;
+    }
+
+    public void setImages(Collection<String> images) {
+        this.images = images;
+    }
 
     public String getId() {
         return id;
@@ -147,13 +156,6 @@ public class Hourse {
         this.infomation = infomation;
     }
 
-    public Collection<Image> getImages() {
-        return images;
-    }
-
-    public void setImages(Collection<Image> images) {
-        this.images = images;
-    }
 
     @Override
     public String toString() {
