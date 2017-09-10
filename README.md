@@ -1,15 +1,44 @@
 # home
-home web project
-
-登陆接口: /api/login  POST
-接口参数: {"username":"siwang","password":"xuyans"}
-成功:{"status":200,"msg":"success","data":{"id":"59aad95f21d07310f8e8d453","username":"siwang","password":"xuyan","type":1}}
+## Home web project
+> ### 1 登陆接口: /api/login  POST
+```     
+ 接口参数: {"username":"siwang","password":"xuyans"}
+ 成功:
+      {
+         "status": 200,
+         "msg": "success",
+         "data": {
+             "id": "59aad95f21d07310f8e8d453",
+             "username": "siwang",
+             "password": "xuyan",
+             "type": 1
+         }
+     }
 失败:{"status":201,"msg":"fail","data":null}
+```
 
-创建房产信息接口: /api/hourse/create POST
-接口参数:{"title":"正商新蓝钻","price":200,"acreage":123,"status":1,"houseOwnerName":"李坤","houseOwnerPhone":"18239926789",
-     	"address":"中原区新园区","infomation":"面积是123平米","userId":"59aad72021d0731974afcabf","images":[{"imageUrl":"www.baidu.com"},
-     	{"imageUrl":"www.google.com"}],"state":1
+> ### 2 创建房产信息接口: /api/hourse/create POST
+```
+接口参数:
+     {
+         "title": "正商新蓝钻",
+         "price": 200,
+         "acreage": 123,
+         "status": 1,
+         "houseOwnerName": "李坤",
+         "houseOwnerPhone": "18239926789",
+         "address": "中原区新园区",
+         "infomation": "面积是123平米",
+         "userId": "59aad72021d0731974afcabf",
+         "images": [
+             {
+                 "imageUrl": "www.baidu.com"
+             },
+             {
+                 "imageUrl": "www.google.com"
+             }
+         ],
+         "state": 1
      }
 成功:{
        "status": 200,
@@ -38,8 +67,9 @@ home web project
            ]
        }
    }
-
-注册用户接口: /api/account POST
+```
+> ### 3 注册用户接口: /api/account POST
+```
 接口参数:{"username":"siwang","password":"xuyan","type":1}
 成功:{
        "status": 200,
@@ -56,8 +86,9 @@ home web project
        "msg": "fail",
        "data": "账号已存在"
    }
-
-获取房产详细信息接口: /api/hourse/{hourseId}  GET
+```
+> ### 4 获取房产详细信息接口: /api/hourse/{hourseId}  GET
+```
 成功：{
        "status": 200,
        "msg": "success",
@@ -90,8 +121,10 @@ home web project
        "msg": "fail",
        "data": null
    }
-   
-获取用户可看到的所有信息接口：/api/hourses/{userId} POST
+```
+
+> ### 5 获取用户可看到的所有信息接口：/api/hourses/{userId} POST
+```
 参数:{"pageSize":10,"pageNumber":0}
 成功:{
        "status": 200,
@@ -168,8 +201,10 @@ home web project
            }
        ]
    }
+```
    
-删除房产信息接口: /api/delete/{hourseId}  DELETE
+> ### 6 删除房产信息接口: /api/delete/{hourseId}  DELETE
+```
 成功:{
           "status": 200,
           "msg": "success",
@@ -177,10 +212,28 @@ home web project
       }
       
 更新房产信息接口: /api/update  PUT
-参数:{"id":"id",title":"正商新蓝钻","price":200,"acreage":123,"status":1,"houseOwnerName":"李坤","houseOwnerPhone":"18239926789",
-        	"address":"中原区新园区","infomation":"面积是123平米","userId":"59aad72021d0731974afcabf","images":[{"imageUrl":"www.baidu.com"},
-        	{"imageUrl":"www.google.com"}],"state":1
-        }
+参数:
+     {
+         "id": "id0",
+         "title": "正商新蓝钻",
+         "price": 200,
+         "acreage": 123,
+         "status": 1,
+         "houseOwnerName": "李坤",
+         "houseOwnerPhone": "18239926789",
+         "address": "中原区新园区",
+         "infomation": "面积是123平米",
+         "userId": "59aad72021d0731974afcabf",
+         "images": [
+             {
+                 "imageUrl": "www.baidu.com"
+             },
+             {
+                 "imageUrl": "www.google.com"
+             }
+         ],
+         "state": 1
+     }
 成功:{
        "status": 200,
        "msg": "success",
@@ -208,10 +261,12 @@ home web project
            ]
        }
    }
-   
-删除用户接口: /api/deleteUser/{userId}  DELETE
+```
+> ### 7 删除用户接口: /api/deleteUser/{userId}  DELETE
+```
 成功:{
              "status": 200,
              "msg": "success",
              "data": null
          }
+```
