@@ -6,6 +6,7 @@ import com.home.model.Hourse;
 import com.home.model.Image;
 import com.home.repository.HourseRepository;
 import com.home.vo.ApiResponse;
+import com.home.vo.NoPagingResponse;
 import com.home.vo.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -60,9 +61,9 @@ public class HourseHandler {
         String hourseId = request.pathVariable("hourseId");
         Mono<Hourse> hourse = hourseRepository.findById(hourseId);
         Mono<ServerResponse> notFound =  ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(201,"fail",null)));
+                .body(fromObject(new NoPagingResponse(201,"fail",null)));
         return hourse.flatMap(data -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success",data))))
+                .body(fromObject(new NoPagingResponse(200,"success",data))))
                 .switchIfEmpty(notFound);
     }
 
@@ -72,13 +73,13 @@ public class HourseHandler {
         Mono<Hourse> newHourse = hourseRepository.save(hourse);
 //        System.out.println(newHourse.block().toString());
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success",newHourse.block())));
+                .body(fromObject(new NoPagingResponse(200,"success",newHourse.block())));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request){
         String hourseId = request.pathVariable("hourseId");
         Mono<Void> rs = hourseRepository.deleteById(hourseId);
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",rs.block())));
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new NoPagingResponse(200,"success",rs.block())));
     }
 
     public Mono<ServerResponse> create(ServerRequest request){
@@ -86,6 +87,6 @@ public class HourseHandler {
         hourse.setCreateDate(new Date());
         Mono<Hourse> newHourse = hourseRepository.save(hourse);
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success",newHourse.block())));
+                .body(fromObject(new NoPagingResponse(200,"success",newHourse.block())));
     }
 }

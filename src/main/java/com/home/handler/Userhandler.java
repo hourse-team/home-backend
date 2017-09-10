@@ -3,6 +3,7 @@ package com.home.handler;
 import com.home.model.User;
 import com.home.repository.UserRepository;
 import com.home.vo.ApiResponse;
+import com.home.vo.NoPagingResponse;
 import com.home.vo.PageRequest;
 import com.mongodb.util.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +33,9 @@ public class Userhandler {
         User data = request.bodyToMono(User.class).block();
         Mono<User> user = userRepository.findByUsernameAndPassword(data.getUsername(),data.getPassword());
         Mono<ServerResponse> notFound = ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(201,"fail",null)));
+                .body(fromObject(new NoPagingResponse(201,"fail",null)));
         return user.flatMap(use -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success",use))))
+                .body(fromObject(new NoPagingResponse(200,"success",use))))
                 .switchIfEmpty(notFound);
     }
 
@@ -47,16 +48,16 @@ public class Userhandler {
         User newUser = request.bodyToMono(User.class).block();
         if(newUser.getType() == null || (newUser.getType() != 1 && newUser.getType() != 0)){
             return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .body(fromObject(new ApiResponse(202,"error","未指定用户类型")));
+                    .body(fromObject(new NoPagingResponse(202,"error","未指定用户类型")));
         }
         Mono<User> user = userRepository.findByUsername(newUser.getUsername());
         User use = user.block();
         if(use == null){
            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .body(fromObject(new ApiResponse(200,"success",userRepository.insert(newUser).block())));
+                    .body(fromObject(new NoPagingResponse(200,"success",userRepository.insert(newUser).block())));
         }
         return user.flatMap(a -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(201,"fail","账号已存在"))));
+                .body(fromObject(new NoPagingResponse(201,"fail","账号已存在"))));
     }
 
     public Mono<ServerResponse> deleteUser(ServerRequest request){
@@ -65,7 +66,7 @@ public class Userhandler {
 //        Mono<ServerResponse> notFound =  ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
 //                .body(fromObject(new ApiResponse(201,"fail",null)));
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success",data.block())));
+                .body(fromObject(new NoPagingResponse(200,"success",data.block())));
     }
 
     public Mono<ServerResponse> getAllUser(ServerRequest request){
