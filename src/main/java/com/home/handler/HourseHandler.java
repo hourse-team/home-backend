@@ -41,13 +41,14 @@ public class HourseHandler {
         if(page == null){
             page = new PageRequest();
         }
-        String title = (String) request.attribute("name").orElse(null);
+        String title = page.getName();
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
         Flux<Hourse> hourses;
         if(title == null) {
             hourses = hourseRepository.findByUserIdOrState(sort, userId, 0);
         } else {
-            hourses = hourseRepository.findByUserIdOrStateAndTitleLike(sort,userId,0,title);
+//            hourses = hourseRepository.findByUserIdOrStateAndTitleLike(sort,userId,0,title);
+            hourses = hourseRepository.findByUserIdOrState(sort,userId,0).filter(res -> res.getTitle().contains(title));
         }
         List<Hourse> fbi= hourses.collectList().block();
         Integer totalCount = (int)Math.ceil(fbi.size()/page.getPageSize());

@@ -9,6 +9,16 @@ public class PageRequest {
 
     private Integer pageNumber = 0;
 
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public Integer getPageSize() {
         return pageSize;
     }
