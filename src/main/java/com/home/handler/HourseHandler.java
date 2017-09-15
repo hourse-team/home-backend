@@ -90,4 +90,13 @@ public class HourseHandler {
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(fromObject(new NoPagingResponse(200,"success",newHourse.block())));
     }
+
+    public Mono<ServerResponse> getAllHourses(ServerRequest request){
+        Integer type = Integer.valueOf(request.pathVariable("type"));
+        Integer pageSize = Integer.valueOf(request.queryParam("pageSize").orElse("10"));
+        Integer pageNumber = Integer.valueOf(request.queryParam("pageNumber").orElse("0"));
+        Sort sort = new Sort(Sort.Direction.DESC,"createDate");
+        Flux<Hourse> all = hourseRepository.findByStatus(sort,type);
+        return null;
+    }
 }

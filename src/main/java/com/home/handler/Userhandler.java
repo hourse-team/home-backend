@@ -6,7 +6,12 @@ import com.home.vo.ApiResponse;
 import com.home.vo.NoPagingResponse;
 import com.home.vo.PageRequest;
 import com.mongodb.util.JSON;
+import com.qiniu.util.Auth;
+import com.qiniu.util.StringMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
@@ -16,6 +21,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.HashMap;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
@@ -28,6 +34,14 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 public class Userhandler {
     @Autowired
     private UserRepository userRepository;
+
+    @Value("${qiniu.access_key}")
+    private String accessKey;
+
+    @Value("${qiniu.secret_key}")
+    private String secretKey;
+
+    private static final Logger logger = LoggerFactory.getLogger(Userhandler.class);
 
     public Mono<ServerResponse> getUser(ServerRequest request){
         User data = request.bodyToMono(User.class).block();
@@ -82,6 +96,21 @@ public class Userhandler {
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(fromObject(new ApiResponse(200,"success",users.collectList().block(),
                         (int) Math.ceil(count.doubleValue()/page.getPageSize()),page.getPageNumber(),page.getPageSize())));
+    }
+
+    public Mono<ServerResponse> getUploadToken(ServerRequest request){
+        String saveKey = request.queryParam("saveKey").orElse(null);
+        String bucket = "dingshengfangchan";
+        Auth auth = Auth.create(accessKey, secretKey);
+
+        StringMap policy = new StringMap();
+        policy.put("insertOnly", 1);
+        policy.putNotEmpty("saveKey", saveKey);
+
+        String token = auth.uploadToken(bucket, null, 3600, policy);
+        logger.debug("bucket {}, qiniu upload token: {}", bucket, token);
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(fromObject(new NoPagingResponse(200,"success",token)));
     }
     public static void main(String[] args){
             Flux.just(1,2,3,4,5).range(2, 3)

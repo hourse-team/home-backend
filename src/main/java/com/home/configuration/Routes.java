@@ -37,7 +37,8 @@ public class Routes {
                 .and(route(GET("/api/index").and(accept(MediaType.TEXT_HTML)),userhandler::index))
                 .and(route(POST("/api/account").and(type),userhandler::register))
                 .and(route(DELETE("/api/deleteUser/{userId}").and(type),userhandler::deleteUser))
-                .and(route(GET("/api/account").and(type),userhandler::getAllUser));
+                .and(route(GET("/api/account").and(type),userhandler::getAllUser))
+                .and(route(GET("/api/qiniu/token").and(type),userhandler::getUploadToken));
     }
 
 }
