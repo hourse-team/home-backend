@@ -97,6 +97,15 @@ public class HourseHandler {
         Integer pageNumber = Integer.valueOf(request.queryParam("pageNumber").orElse("0"));
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
         Flux<Hourse> all = hourseRepository.findByStatus(sort,type);
-        return null;
+        final int[] totalCount = new int[1];
+        List<Hourse> houres = Collections.EMPTY_LIST;
+        all.buffer().subscribe(data -> {
+             int total = data.size() / pageSize;
+             totalCount[0] = total;
+             data = data.subList(pageNumber*pageSize,(pageNumber+1)*pageSize > data.size() ? data.size() : (pageNumber+1)*pageSize);
+             houres.addAll(data);
+        });
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).header("Access-Control-Allow-Origin","*").body(fromObject(new ApiResponse(200,"success",houres,
+                totalCount[0],pageNumber,pageSize)));
     }
 }
