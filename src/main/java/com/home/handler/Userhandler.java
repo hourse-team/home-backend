@@ -19,6 +19,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.WebSession;
+import org.springframework.web.server.session.WebSessionManager;
+import org.springframework.web.server.session.WebSessionStore;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -41,6 +44,8 @@ public class Userhandler {
     @Value("${qiniu.secret_key}")
     private String secretKey;
 
+    private WebSession webSession;
+
     private static final Logger logger = LoggerFactory.getLogger(Userhandler.class);
 //    HttpMethod[] methods = {HttpMethod.GET,HttpMethod.DELETE,HttpMethod.POST,HttpMethod.PUT};
     private Set<HttpMethod> httpMethodSet = new HashSet<>(Arrays.asList(new HttpMethod[]{HttpMethod.GET, HttpMethod.DELETE, HttpMethod.POST, HttpMethod.PUT}));
@@ -54,6 +59,9 @@ public class Userhandler {
         Mono<User> user = userRepository.findByUsernameAndPassword(data.getUsername(),data.getPassword());
         Mono<ServerResponse> notFound = ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(fromObject(new NoPagingResponse(201,"fail",null)));
+        user.subscribe(res -> {
+
+        });
         return user.flatMap(use -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .header("Access-Control-Allow-Origin","*").allow(httpMethodSet)
                 .body(fromObject(new NoPagingResponse(200,"success",use))))
@@ -102,7 +110,7 @@ public class Userhandler {
                 count.intValue() : (page.getPageNumber()+1)*page.getPageSize().intValue());
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(fromObject(new ApiResponse(200,"success",users.collectList().block(),
-                        (int) Math.ceil(count.doubleValue()/page.getPageSize()),page.getPageNumber(),page.getPageSize())));
+                        count.intValue(),page.getPageNumber(),page.getPageSize())));
     }
 
     public Mono<ServerResponse> getUploadToken(ServerRequest request){

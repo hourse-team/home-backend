@@ -51,7 +51,7 @@ public class HourseHandler {
             hourses = hourseRepository.findByUserIdOrState(sort,userId,0).filter(res -> res.getTitle().contains(title));
         }
         List<Hourse> fbi= hourses.collectList().block();
-        Integer totalCount = (int)Math.ceil(fbi.size()/page.getPageSize());
+        Integer totalCount = fbi.size();
         fbi = page.getPageSize()*(page.getPageNumber()+1) > fbi.size() ? fbi.subList((page.getPageNumber())*page.getPageSize(),fbi.size()) :
                 fbi.subList((page.getPageNumber())*page.getPageSize(),page.getPageSize()*(page.getPageNumber()+1));
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
