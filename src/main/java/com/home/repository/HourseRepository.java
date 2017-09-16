@@ -1,5 +1,6 @@
 package com.home.repository;
 
+import com.home.model.BaseHourse;
 import com.home.model.Hourse;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
@@ -8,11 +9,11 @@ import reactor.core.publisher.Flux;
 /**
  * Created by Administrator on 2017/8/19.
  */
-public interface HourseRepository extends ReactiveMongoRepository<Hourse,String>{
+public interface HourseRepository extends ReactiveMongoRepository<BaseHourse,String>{
 
-    Flux<Hourse> findByUserIdOrState(Sort sort, String userId, Integer state);
+    <T extends BaseHourse> Flux<T> findByCreateByOrIsPublic(Sort sort, String userId, String state);
 
-    Flux<Hourse> findByUserIdOrStateAndTitleLike(Sort sort,String userId,Integer state,String title);
+//    <T extends BaseHourse> Flux<T> findByCreateByOrStateAndTitleLike(Sort sort,String userId,Integer state,String title);
 
-    Flux<Hourse> findByStatus(Sort sort,Integer status);
+    <T extends BaseHourse> Flux<T> findByType(Sort sort,Integer status);
 }
