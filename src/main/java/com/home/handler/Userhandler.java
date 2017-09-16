@@ -49,6 +49,7 @@ public class Userhandler {
         Mono<ServerResponse> notFound = ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(fromObject(new NoPagingResponse(201,"fail",null)));
         return user.flatMap(use -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .header("Access-Control-Allow-Origin","*")
                 .body(fromObject(new NoPagingResponse(200,"success",use))))
                 .switchIfEmpty(notFound);
     }
