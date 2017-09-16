@@ -39,7 +39,7 @@ public class Routes {
                 .and(route(DELETE("/api/deleteUser/{userId}").and(type),userhandler::deleteUser))
                 .and(route(GET("/api/account").and(type),userhandler::getAllUser))
                 .and(route(GET("/api/qiniu/token").and(type),userhandler::getUploadToken))
-                .and(route(GET("/api/front/hourses").and(type),hourseHandler::getAllHourses));
+                .and(route(GET("/api/front/hourses/{type}").and(type),hourseHandler::getAllHourses));
     }
 
 }
