@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -21,8 +22,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
@@ -42,6 +42,12 @@ public class Userhandler {
     private String secretKey;
 
     private static final Logger logger = LoggerFactory.getLogger(Userhandler.class);
+//    HttpMethod[] methods = {HttpMethod.GET,HttpMethod.DELETE,HttpMethod.POST,HttpMethod.PUT};
+    private Set<HttpMethod> httpMethodSet = new HashSet<>(Arrays.asList(new HttpMethod[]{HttpMethod.GET, HttpMethod.DELETE, HttpMethod.POST, HttpMethod.PUT}));
+
+//    public Userhandler() {
+//        httpMethodSet = new HashSet<>(Arrays.asList(methods));
+//    }
 
     public Mono<ServerResponse> getUser(ServerRequest request){
         User data = request.bodyToMono(User.class).block();
@@ -49,7 +55,7 @@ public class Userhandler {
         Mono<ServerResponse> notFound = ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(fromObject(new NoPagingResponse(201,"fail",null)));
         return user.flatMap(use -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .header("Access-Control-Allow-Origin","*")
+                .header("Access-Control-Allow-Origin","*").allow(httpMethodSet)
                 .body(fromObject(new NoPagingResponse(200,"success",use))))
                 .switchIfEmpty(notFound);
     }
