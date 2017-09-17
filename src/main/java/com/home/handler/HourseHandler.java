@@ -104,7 +104,7 @@ public class HourseHandler {
     }
 
     public Mono<ServerResponse> getAllHourses(ServerRequest request){
-        Integer type = Integer.valueOf(request.pathVariable("type"));
+        String type = request.pathVariable("type");
         Integer pageSize = Integer.valueOf(request.queryParam("pageSize").orElse("10"));
         Integer pageNumber = Integer.valueOf(request.queryParam("pageNumber").orElse("0"));
         //Integer pageNumber = 0;
