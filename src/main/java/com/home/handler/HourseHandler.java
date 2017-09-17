@@ -114,7 +114,7 @@ public class HourseHandler {
         List<BaseHourse> houres = all.buffer().blockFirst();
         if(houres == null){
             return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",Collections.EMPTY_LIST,
-                    houres.size(),pageNumber,pageSize)));
+                    0,pageNumber,pageSize)));
         }
         List<BaseHourse> sunHourse = houres.subList(pageNumber*pageSize,(pageNumber+1)*pageSize > houres.size() ? houres.size() : (pageNumber+1)*pageSize);
 //        Disposable disposable = all.buffer().subscribe(data -> {
