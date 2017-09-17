@@ -7,6 +7,7 @@ import com.home.repository.HourseRepository;
 import com.home.vo.ApiResponse;
 import com.home.vo.NoPagingResponse;
 import com.home.vo.PageRequest;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
@@ -24,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.logging.Logger;
 
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
@@ -34,6 +36,8 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 public class HourseHandler {
     @Autowired
     HourseRepository hourseRepository;
+
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(HourseHandler.class);
 
     public Mono<ServerResponse> getHourses(ServerRequest request){
         String userId = request.pathVariable("userId");
@@ -112,6 +116,7 @@ public class HourseHandler {
         Flux<BaseHourse> all = hourseRepository.findByType(sort,type);
         final int[] totalCount = new int[1];
         List<BaseHourse> houres = all.buffer().blockFirst();
+        logger.info(houres.toString());
         if(houres == null){
             return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",Collections.EMPTY_LIST,
                     0,pageNumber,pageSize)));
