@@ -117,9 +117,13 @@ public class HourseHandler {
         final int[] totalCount = new int[1];
         List<BaseHourse> houres = all.buffer().blockFirst();
 //        logger.info(houres.toString());
+        Mono<ServerResponse> response = ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",Collections.EMPTY_LIST,
+                0,pageNumber,pageSize)));
         if(houres == null){
-            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",Collections.EMPTY_LIST,
-                    0,pageNumber,pageSize)));
+            return response;
+        }
+        if(pageNumber*pageSize > houres.size()){
+            return response;
         }
         List<BaseHourse> sunHourse = houres.subList(pageNumber*pageSize,(pageNumber+1)*pageSize > houres.size() ? houres.size() : (pageNumber+1)*pageSize);
 //        Disposable disposable = all.buffer().subscribe(data -> {
@@ -128,7 +132,7 @@ public class HourseHandler {
 //             data = data.subList(pageNumber*pageSize,(pageNumber+1)*pageSize > data.size() ? data.size() : (pageNumber+1)*pageSize);
 //             houres.addAll(data);
 //        });
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",houres,
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",sunHourse,
                 houres.size(),pageNumber,pageSize)));
     }
 }
