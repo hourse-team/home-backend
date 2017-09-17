@@ -116,7 +116,7 @@ public class HourseHandler {
         Flux<BaseHourse> all = hourseRepository.findByType(sort,type);
         final int[] totalCount = new int[1];
         List<BaseHourse> houres = all.buffer().blockFirst();
-        logger.info(houres.toString());
+//        logger.info(houres.toString());
         if(houres == null){
             return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",Collections.EMPTY_LIST,
                     0,pageNumber,pageSize)));
