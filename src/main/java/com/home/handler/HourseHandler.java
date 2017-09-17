@@ -112,6 +112,10 @@ public class HourseHandler {
         Flux<BaseHourse> all = hourseRepository.findByType(sort,type);
         final int[] totalCount = new int[1];
         List<BaseHourse> houres = all.buffer().blockFirst();
+        if(houres == null){
+            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",Collections.EMPTY_LIST,
+                    houres.size(),pageNumber,pageSize)));
+        }
         List<BaseHourse> sunHourse = houres.subList(pageNumber*pageSize,(pageNumber+1)*pageSize > houres.size() ? houres.size() : (pageNumber+1)*pageSize);
 //        Disposable disposable = all.buffer().subscribe(data -> {
 //             int total = data.size();
