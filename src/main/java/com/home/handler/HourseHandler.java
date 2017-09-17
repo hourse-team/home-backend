@@ -72,6 +72,14 @@ public class HourseHandler {
                 .switchIfEmpty(notFound);
     }
 
+    public Mono<ServerResponse> findHourse(ServerRequest request){
+        return hourseRepository.findById(request.pathVariable("hourseId"))
+                .flatMap(data ->
+                    ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+                            .body(fromObject(new NoPagingResponse(200,"success",data)))
+                );
+    }
+
     public Mono<ServerResponse> update(ServerRequest request){
         String type = request.queryParam("type").get();
         Class<?> clazz = type.equals("1") ? DealHourse.class : RentHouse.class;
@@ -88,6 +96,7 @@ public class HourseHandler {
         String hourseId = request.pathVariable("hourseId");
 //        Mono<Void> rs = hourseRepository.deleteById(hourseId);
         String userId = request.bodyToMono(User.class).block().getId();
+        //hourseRepository.findById(request.bodyToMono(User.class).map(User::getId));
         Mono<BaseHourse> rs = hourseRepository.findById(hourseId);
         BaseHourse hourse = rs.block();
         hourse.setIsDeleted("1");
