@@ -17,7 +17,7 @@
 失败:{"status":201,"msg":"fail","data":null}
 ```
 
-> ### 2 创建房产信息接口: /api/hourse/create POST
+> ### 2 创建房产信息接口: /api/hourse/create?type={房屋类型} POST
 ```
 接口参数:
      {
@@ -205,6 +205,7 @@
    
 > ### 6 删除房产信息接口: /api/delete/{hourseId}  DELETE
 ```
+参数:{id:""}
 成功:{
           "status": 200,
           "msg": "success",
@@ -269,4 +270,15 @@
              "msg": "success",
              "data": null
          }
+```
+> ### 6 前台获取房产信息接口: /api/front/hourses/{type}  get
+```
+成功:{
+          "status": 200,
+          "msg": "success",
+          "data": [...],
+          "totalCount":*
+          "pageSize":,
+          "pageNumber";
+      }
 ```
