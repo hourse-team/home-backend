@@ -40,26 +40,40 @@ public class HourseHandler {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(HourseHandler.class);
 
     public Mono<ServerResponse> getHourses(ServerRequest request){
-        String userId = request.pathVariable("userId");
-        PageRequest page = request.bodyToMono(PageRequest.class).block();
-        if(page == null){
-            page = new PageRequest();
-        }
-        String title = page.getName();
+//        String userId = request.pathVariable("userId");
+//        PageRequest page = request.bodyToMono(PageRequest.class).block();
+//        if(page == null){
+//            page = new PageRequest();
+//        }
+//        String title = page.getName();
+//        Sort sort = new Sort(Sort.Direction.DESC,"createDate");
+//        Flux<BaseHourse> hourses;
+//        if(title == null) {
+//            hourses = hourseRepository.findByCreateByOrIsPublic(sort, userId, "0");
+//        } else {
+////            hourses = hourseRepository.findByUserIdOrStateAndTitleLike(sort,userId,0,title);
+//            hourses = hourseRepository.findByCreateByOrIsPublic(sort,userId,"0").filter(res -> res.getTitle().contains(title));
+//        }
+//        List<BaseHourse> fbi= hourses.collectList().block();
+//        Integer totalCount = fbi.size();
+//        fbi = page.getPageSize()*(page.getPageNumber()+1) > fbi.size() ? fbi.subList((page.getPageNumber())*page.getPageSize(),fbi.size()) :
+//                fbi.subList((page.getPageNumber())*page.getPageSize(),page.getPageSize()*(page.getPageNumber()+1));
+//        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
+//                .body(fromObject(new ApiResponse(200,"success",fbi,totalCount,page.getPageNumber(),page.getPageSize())));
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
-        Flux<BaseHourse> hourses;
-        if(title == null) {
-            hourses = hourseRepository.findByCreateByOrIsPublic(sort, userId, "0");
-        } else {
-//            hourses = hourseRepository.findByUserIdOrStateAndTitleLike(sort,userId,0,title);
-            hourses = hourseRepository.findByCreateByOrIsPublic(sort,userId,"0").filter(res -> res.getTitle().contains(title));
-        }
-        List<BaseHourse> fbi= hourses.collectList().block();
-        Integer totalCount = fbi.size();
-        fbi = page.getPageSize()*(page.getPageNumber()+1) > fbi.size() ? fbi.subList((page.getPageNumber())*page.getPageSize(),fbi.size()) :
-                fbi.subList((page.getPageNumber())*page.getPageSize(),page.getPageSize()*(page.getPageNumber()+1));
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success",fbi,totalCount,page.getPageNumber(),page.getPageSize())));
+        Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest()));
+        Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"0")
+                .filter(res -> {
+                    String title = page.block().getName();
+                    boolean bool;
+                    if(title == null){
+                        bool = 1 == 1;
+                    } else {
+                        bool = res.getTitle().contains(title);
+                    }
+                    return bool;
+                });
+        hourses.count().zipWith(hourses.collectList()).zipWith(page);
     }
 
     public Mono<ServerResponse> getHourse(ServerRequest request){
