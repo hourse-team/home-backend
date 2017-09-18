@@ -4,6 +4,7 @@ package com.home.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -70,6 +71,10 @@ public abstract class BaseHourse {
 
     public void setUpdateBy(String updateBy) {
         this.updateBy = updateBy;
+    }
+
+    public void setUpdateBy(Mono<String> user){
+        user.subscribe(userId -> this.updateBy = userId);
     }
 
     public Date getCreateDate() {

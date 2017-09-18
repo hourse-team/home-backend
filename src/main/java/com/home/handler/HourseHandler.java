@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home.model.*;
 import com.home.repository.HourseRepository;
+import com.home.util.ServerResponseUtil;
 import com.home.vo.ApiResponse;
 import com.home.vo.NoPagingResponse;
 import com.home.vo.PageRequest;
@@ -39,52 +40,37 @@ public class HourseHandler {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(HourseHandler.class);
 
+    private static final ApiResponse noData = new ApiResponse(202,"page parameter error",Collections.EMPTY_LIST);
+
+    private static final NoPagingResponse error = NoPagingResponse.error("参数不对，服务器拒绝响应");
+
     public Mono<ServerResponse> getHourses(ServerRequest request){
-//        String userId = request.pathVariable("userId");
-//        PageRequest page = request.bodyToMono(PageRequest.class).block();
-//        if(page == null){
-//            page = new PageRequest();
-//        }
-//        String title = page.getName();
-//        Sort sort = new Sort(Sort.Direction.DESC,"createDate");
-//        Flux<BaseHourse> hourses;
-//        if(title == null) {
-//            hourses = hourseRepository.findByCreateByOrIsPublic(sort, userId, "0");
-//        } else {
-////            hourses = hourseRepository.findByUserIdOrStateAndTitleLike(sort,userId,0,title);
-//            hourses = hourseRepository.findByCreateByOrIsPublic(sort,userId,"0").filter(res -> res.getTitle().contains(title));
-//        }
-//        List<BaseHourse> fbi= hourses.collectList().block();
-//        Integer totalCount = fbi.size();
-//        fbi = page.getPageSize()*(page.getPageNumber()+1) > fbi.size() ? fbi.subList((page.getPageNumber())*page.getPageSize(),fbi.size()) :
-//                fbi.subList((page.getPageNumber())*page.getPageSize(),page.getPageSize()*(page.getPageNumber()+1));
-//        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-//                .body(fromObject(new ApiResponse(200,"success",fbi,totalCount,page.getPageNumber(),page.getPageSize())));
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
         Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest()));
         Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"0")
                 .filter(res -> {
                     String title = page.block().getName();
                     boolean bool;
-                    if(title == null){
+                    if(title == null || title.equals("")){
                         bool = 1 == 1;
                     } else {
                         bool = res.getTitle().contains(title);
                     }
                     return bool;
                 });
-        hourses.count().zipWith(hourses.collectList()).zipWith(page);
-        return null;
+        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
+            Integer start = pag.getPageNumber()*pag.getPageSize();
+            Integer end = (pag.getPageNumber()+1)*pag.getPageSize();
+            list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
+            return list;
+        }),page).onErrorReturn(noData);
+        return ServerResponseUtil.createByMono(build,ApiResponse.class);
     }
 
     public Mono<ServerResponse> getHourse(ServerRequest request){
-        String hourseId = request.pathVariable("hourseId");
-        Mono<BaseHourse> hourse = hourseRepository.findById(hourseId);
-        Mono<ServerResponse> notFound =  ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new NoPagingResponse(201,"fail",null)));
-        return hourse.flatMap(data -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new NoPagingResponse(200,"success",data))))
-                .switchIfEmpty(notFound);
+        return hourseRepository.findById(request.pathVariable("hourseId"))
+                .flatMap(data -> ServerResponseUtil.createResponse(NoPagingResponse.success(data)))
+                .switchIfEmpty(ServerResponseUtil.createResponse(NoPagingResponse.noFound()));
     }
 
     public Mono<ServerResponse> findHourse(ServerRequest request){
@@ -98,37 +84,34 @@ public class HourseHandler {
     public Mono<ServerResponse> update(ServerRequest request){
         String type = request.queryParam("type").get();
         Class<?> clazz = type.equals("1") ? DealHourse.class : RentHouse.class;
-        BaseHourse hourse = (BaseHourse) request.bodyToMono(clazz).block();
-        hourse.setUpdateDate(new Date());
-        hourse.setType(type);
-        Mono<BaseHourse> newHourse = hourseRepository.save(hourse);
-//        System.out.println(newHourse.block().toString());
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new NoPagingResponse(200,"success",newHourse.block())));
+        return hourseRepository.save(request.bodyToMono(clazz))
+                .flatMap(data -> ServerResponseUtil.createResponse(NoPagingResponse.success(data)))
+                .onErrorReturn(ServerResponseUtil.createResponse(NoPagingResponse.error("参数不对，服务器拒绝响应")).block());
     }
 
     public Mono<ServerResponse> delete(ServerRequest request){
-        String hourseId = request.pathVariable("hourseId");
-//        Mono<Void> rs = hourseRepository.deleteById(hourseId);
-        String userId = request.bodyToMono(User.class).block().getId();
-        //hourseRepository.findById(request.bodyToMono(User.class).map(User::getId));
-        Mono<BaseHourse> rs = hourseRepository.findById(hourseId);
-        BaseHourse hourse = rs.block();
-        hourse.setIsDeleted("1");
-        hourse.setUpdateBy(userId);
-        Mono<BaseHourse> newHourse = hourseRepository.save(hourse);
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new NoPagingResponse(200,"success",newHourse.block())));
+        Mono<BaseHourse> hourse = hourseRepository.save(hourseRepository.findById(request.pathVariable("hourseId")).map(res -> {
+            res.setIsDeleted("1");
+            res.setUpdateBy(request.bodyToMono(User.class).map(User::getId));
+            return res;
+        }));
+        return hourse.flatMap(data -> ServerResponseUtil.createByMono(hourse,BaseHourse.class))
+                .onErrorReturn(ServerResponseUtil.createResponse(NoPagingResponse.error("参数不对，服务器拒绝响应")).block());
     }
 
     public Mono<ServerResponse> create(ServerRequest request){
         String type = request.queryParam("type").get();
         Class<?> clazz = type.equals("1") ? DealHourse.class : RentHouse.class;
-        BaseHourse hourse = (BaseHourse) request.bodyToMono(clazz).block();
-        hourse.setCreateDate(new Date());
-        hourse.setType(type);
-        Mono<BaseHourse> newHourse = hourseRepository.save(hourse);
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new NoPagingResponse(200,"success",newHourse.block())));
+        Mono<BaseHourse> hourseMono = (Mono<BaseHourse>)request.bodyToMono(clazz);
+        return ServerResponseUtil.createByMono(
+                hourseRepository.save(hourseMono.map(hourse -> {
+                    hourse.setCreateDate(new Date());
+                    hourse.setType(type);
+                    return hourse;
+                })).flatMap(r -> {
+                    NoPagingResponse response =  NoPagingResponse.success(r);
+                    return Mono.just(response);
+                }).onErrorReturn(error),NoPagingResponse.class);
     }
 
     public Mono<ServerResponse> getAllHourses(ServerRequest request){

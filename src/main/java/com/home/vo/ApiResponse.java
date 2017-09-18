@@ -1,5 +1,10 @@
 package com.home.vo;
 
+import com.home.model.BaseHourse;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+
 /**
  * Created by Administrator on 2017/9/2.
  */
@@ -64,6 +69,10 @@ public class ApiResponse {
         this.data = data;
     }
 
+    public ApiResponse(){
+
+    }
+
     public ApiResponse(Integer status, String msg, Object data) {
         this.status = status;
         this.msg = msg;
@@ -78,5 +87,18 @@ public class ApiResponse {
         this.totalCount = totalCount;
         this.pageNumber = pageNumber;
         this.pageSize = pageSize;
+    }
+
+    public static Mono<ApiResponse> build(Mono<Long> count, Mono<List<BaseHourse>> hourse, Mono<PageRequest> page){
+        return count.zipWith(hourse,(sum,house) -> {
+            ApiResponse response = new ApiResponse();
+            response.totalCount = sum.intValue();
+            response.data = house;
+            return response;
+        }).zipWith(page,(response,request) -> {
+            response.pageNumber = request.getPageNumber();
+            response.pageSize = request.getPageSize();
+            return response;
+        });
     }
 }

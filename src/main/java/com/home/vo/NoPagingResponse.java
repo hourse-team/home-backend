@@ -37,4 +37,16 @@ public class NoPagingResponse {
         this.msg = msg;
         this.data = data;
     }
+
+    public static NoPagingResponse noFound(){
+        return new NoPagingResponse(201,"fail",null);
+    }
+
+    public static NoPagingResponse error(String msg){
+        return new NoPagingResponse(202,"fail",msg);
+    }
+
+    public static NoPagingResponse success(Object data){
+        return new NoPagingResponse(200,"success",data);
+    }
 }
