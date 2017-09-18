@@ -4,9 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home.model.*;
 import com.home.repository.HourseRepository;
-import com.home.vo.ApiResponse;
-import com.home.vo.NoPagingResponse;
-import com.home.vo.PageRequest;
+import com.home.vo.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -141,7 +139,7 @@ public class HourseHandler {
 //             data = data.subList(pageNumber*pageSize,(pageNumber+1)*pageSize > data.size() ? data.size() : (pageNumber+1)*pageSize);
 //             houres.addAll(data);
 //        });
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",sunHourse,
-                houres.size(),pageNumber,pageSize)));
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new FrontResponse(200,"success",new FrontData(
+                houres.size(),pageNumber,pageSize,sunHourse))));
     }
 }
