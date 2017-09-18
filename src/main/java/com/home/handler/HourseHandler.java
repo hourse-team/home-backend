@@ -124,8 +124,8 @@ public class HourseHandler {
         final int[] totalCount = new int[1];
         List<BaseHourse> houres = all.buffer().blockFirst();
 //        logger.info(houres.toString());
-        Mono<ServerResponse> response = ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new ApiResponse(200,"success",Collections.EMPTY_LIST,
-                0,pageNumber,pageSize)));
+        Mono<ServerResponse> response = ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(fromObject(new FrontResponse(200,"success",new FrontData(
+                0,pageNumber,pageSize,Collections.EMPTY_LIST))));
         if(houres == null){
             return response;
         }
