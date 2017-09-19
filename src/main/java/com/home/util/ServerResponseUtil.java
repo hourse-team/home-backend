@@ -1,5 +1,6 @@
 package com.home.util;
 
+import com.home.handler.HourseHandler;
 import com.home.model.BaseHourse;
 import com.home.vo.PageRequest;
 import org.springframework.http.MediaType;
@@ -23,6 +24,11 @@ public class ServerResponseUtil {
         return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(mono, clazz);
     }
+
+    public static Mono<ServerResponse> error(){
+        return createResponse(HourseHandler.error);
+    }
+
 
     public static Mono<List<BaseHourse>> page(Mono<PageRequest> page,Mono<List<BaseHourse>> list){
         page.subscribe(res -> {

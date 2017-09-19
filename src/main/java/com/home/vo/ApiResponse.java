@@ -89,7 +89,7 @@ public class ApiResponse {
         this.pageSize = pageSize;
     }
 
-    public static Mono<ApiResponse> build(Mono<Long> count, Mono<List<BaseHourse>> hourse, Mono<PageRequest> page){
+    public static Mono<ApiResponse> build(Mono<Long> count, Mono<?> hourse, Mono<PageRequest> page){
         return count.zipWith(hourse,(sum,house) -> {
             ApiResponse response = new ApiResponse();
             response.totalCount = sum.intValue();

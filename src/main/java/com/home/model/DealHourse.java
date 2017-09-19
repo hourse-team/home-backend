@@ -10,9 +10,6 @@ import java.util.Collection;
 @Document(collection = "hourse")
 public class DealHourse extends BaseHourse{
 
-    @Id
-    private String id;
-
     private String totalPrice;
 
     private String refPrice;
@@ -22,25 +19,6 @@ public class DealHourse extends BaseHourse{
     private String equityYear;
 
     private String buildYear;
-
-    @Field("images")
-    private Collection<String> images = new ArrayList<>();
-
-    public Collection<String> getImages() {
-        return images;
-    }
-
-    public void setImages(Collection<String> images) {
-        this.images = images;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getTotalPrice() {
         return totalPrice;

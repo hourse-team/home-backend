@@ -13,6 +13,9 @@ import java.util.Date;
 @Document(collection = "hourse")
 public abstract class BaseHourse {
 
+    @Id
+    private String id;
+
     private String isDeleted;
 
     private String createBy;
@@ -48,6 +51,25 @@ public abstract class BaseHourse {
     private String desc;
 
     private String type; //0出租，1出售
+
+    @Field("images")
+    private Collection<String> images = new ArrayList<>();
+
+    public Collection<String> getImages() {
+        return images;
+    }
+
+    public void setImages(Collection<String> images) {
+        this.images = images;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getIsDeleted() {
         return isDeleted;
