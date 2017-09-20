@@ -94,6 +94,8 @@ public class ApiResponse {
             ApiResponse response = new ApiResponse();
             response.totalCount = sum.intValue();
             response.data = house;
+            response.status=200;
+            response.msg = "success";
             return response;
         }).zipWith(page,(response,request) -> {
             response.pageNumber = request.getPageNumber();

@@ -37,4 +37,8 @@ public class FrontResponse {
         this.msg = msg;
         this.data = data;
     }
+
+    public static FrontResponse success(FrontData data){
+        return new FrontResponse(200,"success",data);
+    }
 }

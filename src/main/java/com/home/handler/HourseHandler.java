@@ -5,9 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home.model.*;
 import com.home.repository.HourseRepository;
 import com.home.util.ServerResponseUtil;
-import com.home.vo.ApiResponse;
-import com.home.vo.NoPagingResponse;
-import com.home.vo.PageRequest;
+import com.home.vo.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -128,7 +126,8 @@ public class HourseHandler {
                     Integer end = (pageNumber+1)*pageSize;
                     list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
                     return list;
-                }).flatMap(data -> ServerResponseUtil.createResponse(new ApiResponse(200,"success",data,data.size(),
-                        pageNumber,pageSize))).onErrorResume(throwable -> ServerResponseUtil.error());
+                }).flatMap(data -> ServerResponseUtil.createResponse(FrontResponse.success(
+                        new FrontData(data.size(),pageNumber,pageSize,data))))
+                .onErrorResume(throwable -> ServerResponseUtil.error());
     }
 }
