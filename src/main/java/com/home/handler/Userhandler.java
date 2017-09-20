@@ -54,7 +54,7 @@ public class Userhandler {
 
     public Mono<ServerResponse> getUser(ServerRequest request){
         return request.bodyToMono(User.class).flatMap(user -> userRepository.findByUsernameAndPassword(user.getUsername(),
-                user.getPassword())).flatMap(data -> ServerResponseUtil.createResponse(data))
+                user.getPassword())).flatMap(data -> ServerResponseUtil.createResponse(NoPagingResponse.success(data)))
                 .switchIfEmpty(ServerResponseUtil.createResponse(new NoPagingResponse(201,"fail","账号不存在或密码错误")))
                 .onErrorResume(throwable -> ServerResponseUtil.error());
     }
