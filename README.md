@@ -123,7 +123,7 @@
    }
 ```
 
-> ### 5 获取用户可看到的所有信息接口：/api/hourses/{userId} POST
+> ### 5 获取用户可看到的所有信息接口：/api/{userId}/hourses/{type} POST
 ```
 参数:{"pageSize":10,"pageNumber":0}
 成功:{

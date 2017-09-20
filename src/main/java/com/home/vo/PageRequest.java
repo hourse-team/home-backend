@@ -34,4 +34,16 @@ public class PageRequest {
     public void setPageNumber(Integer pageNumber) {
         this.pageNumber = pageNumber;
     }
+
+    public PageRequest(){
+    }
+
+    @Override
+    public String toString() {
+        return "PageRequest{" +
+                "pageSize=" + pageSize +
+                ", pageNumber=" + pageNumber +
+                ", name='" + name + '\'' +
+                '}';
+    }
 }

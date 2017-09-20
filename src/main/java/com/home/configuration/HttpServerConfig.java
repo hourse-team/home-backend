@@ -8,6 +8,7 @@ import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
+import reactor.core.publisher.Hooks;
 import reactor.ipc.netty.http.server.HttpServer;
 
 
@@ -25,6 +26,7 @@ public class HttpServerConfig {
         ReactorHttpHandlerAdapter adapter = new ReactorHttpHandlerAdapter(httpHandler);
         HttpServer server = HttpServer.create("localhost",environment.getProperty("server.port",Integer.class));
         server.newHandler(adapter);
+        Hooks.onOperatorDebug();
         return server;
     }
 }

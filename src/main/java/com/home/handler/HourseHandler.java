@@ -8,24 +8,16 @@ import com.home.util.ServerResponseUtil;
 import com.home.vo.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerRequestExtensionsKt;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import sun.misc.BASE64Decoder;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.*;
-import java.util.function.Function;
-import java.util.logging.Logger;
+
 
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
@@ -39,19 +31,21 @@ public class HourseHandler {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(HourseHandler.class);
 
-    public static final ApiResponse noData = new ApiResponse(202,"page parameter error",Collections.EMPTY_LIST);
+    public static final ApiResponse noData = new ApiResponse(200,"page parameter error",Collections.EMPTY_LIST,0,0,0);
 
     public static final NoPagingResponse error = NoPagingResponse.error("参数不对，服务器拒绝响应");
 
     public Mono<ServerResponse> getHourses(ServerRequest request){
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
-        Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest()));
-        Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"0")
+        Mono<PageRequest> page = request.bodyToMono(PageRequest.class);
+        System.out.println(page.block().toString());
+        Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
+                .filter(res -> res.getType().equals(request.pathVariable("type")))
                 .filter(res -> {
-                    String title = page.block().getName();
+                    String title = page.block().getName();//极有可能因为这个block
                     boolean bool;
-                    if(title == null || title.equals("")){
-                        bool = 1 == 1;
+                    if(title.isEmpty()){
+                        bool = true;
                     } else {
                         bool = res.getTitle().contains(title);
                     }
@@ -62,7 +56,7 @@ public class HourseHandler {
             Integer end = (pag.getPageNumber()+1)*pag.getPageSize();
             list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
             return list;
-        }),page).onErrorReturn(noData);
+        }),page);
         return ServerResponseUtil.createByMono(build,ApiResponse.class);
     }
 
@@ -83,9 +77,6 @@ public class HourseHandler {
     public Mono<ServerResponse> update(ServerRequest request){
         String type = request.queryParam("type").get();
         Class<? extends BaseHourse> clazz = type.equals("1") ? DealHourse.class : RentHouse.class;
-//        return hourseRepository.save(request.bodyToMono(clazz))
-//                .flatMap(data -> ServerResponseUtil.createResponse(NoPagingResponse.success(data)))
-//                .onErrorResume(throwable -> ServerResponseUtil.error());
         return request.bodyToMono(clazz).flatMap(hourse -> hourseRepository.save(hourse))
                 .flatMap(data -> ServerResponseUtil.createResponse(NoPagingResponse.success(data)))
                 .onErrorResume(throwable -> ServerResponseUtil.error()).switchIfEmpty(ServerResponseUtil.error());

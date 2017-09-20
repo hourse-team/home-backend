@@ -29,7 +29,7 @@ public class Routes {
     @Bean
     public RouterFunction<?> userRoutes(){
         return route(POST("/api/login").and(accept(MediaType.APPLICATION_JSON)),userhandler::getUser)
-                        .and(route(POST("/api/hourses/{userId}").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::getHourses)
+                        .and(route(POST("/api/{userId}/hourses/{type}").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::getHourses)
                         .and(route(GET("/api/hourse/{hourseId}").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::getHourse))
                         .and(route(PUT("/api/update").and(accept(MediaType.APPLICATION_JSON_UTF8)),hourseHandler::update))
                         .and(route(DELETE("/api/delete/{hourseId}").and(type),hourseHandler::delete)))
@@ -37,7 +37,7 @@ public class Routes {
                 .and(route(GET("/api/index").and(accept(MediaType.TEXT_HTML)),userhandler::index))
                 .and(route(POST("/api/account").and(type),userhandler::register))
                 .and(route(DELETE("/api/deleteUser/{userId}").and(type),userhandler::deleteUser))
-                .and(route(GET("/api/account").and(type),userhandler::getAllUser))
+                .and(route(POST("/api/accounts").and(type),userhandler::getAllUser))
                 .and(route(GET("/api/qiniu/token").and(type),userhandler::getUploadToken))
                 .and(route(GET("/api/front/hourses/{type}").and(type),hourseHandler::getAllHourses));
     }
