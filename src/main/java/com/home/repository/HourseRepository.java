@@ -5,6 +5,7 @@ import com.home.model.Hourse;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Created by Administrator on 2017/8/19.
@@ -15,5 +16,6 @@ public interface HourseRepository extends ReactiveMongoRepository<BaseHourse,Str
 
 //    <T extends BaseHourse> Flux<T> findByCreateByOrStateAndTitleLike(Sort sort,String userId,Integer state,String title);
 
-    <T extends BaseHourse> Flux<T> findByType(Sort sort,String status);
+    <T extends BaseHourse> Flux<T> findByTypeAndIsDeleted(Sort sort,String status,String isDeleted);
+
 }

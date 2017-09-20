@@ -2,6 +2,7 @@ package com.home.handler;
 
 import com.home.model.User;
 import com.home.repository.UserRepository;
+import com.home.util.ServerResponseUtil;
 import com.home.vo.ApiResponse;
 import com.home.vo.NoPagingResponse;
 import com.home.vo.PageRequest;
@@ -47,25 +48,15 @@ public class Userhandler {
     private WebSession webSession;
 
     private static final Logger logger = LoggerFactory.getLogger(Userhandler.class);
-//    HttpMethod[] methods = {HttpMethod.GET,HttpMethod.DELETE,HttpMethod.POST,HttpMethod.PUT};
+
     private Set<HttpMethod> httpMethodSet = new HashSet<>(Arrays.asList(new HttpMethod[]{HttpMethod.GET, HttpMethod.DELETE, HttpMethod.POST, HttpMethod.PUT}));
 
-//    public Userhandler() {
-//        httpMethodSet = new HashSet<>(Arrays.asList(methods));
-//    }
 
     public Mono<ServerResponse> getUser(ServerRequest request){
-        User data = request.bodyToMono(User.class).block();
-        Mono<User> user = userRepository.findByUsernameAndPassword(data.getUsername(),data.getPassword());
-        Mono<ServerResponse> notFound = ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new NoPagingResponse(201,"fail",null)));
-        user.subscribe(res -> {
-
-        });
-        return user.flatMap(use -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .header("Access-Control-Allow-Origin","*").allow(httpMethodSet)
-                .body(fromObject(new NoPagingResponse(200,"success",use))))
-                .switchIfEmpty(notFound);
+        return request.bodyToMono(User.class).flatMap(user -> userRepository.findByUsernameAndPassword(user.getUsername(),
+                user.getPassword())).flatMap(data -> ServerResponseUtil.createResponse(data))
+                .switchIfEmpty(ServerResponseUtil.createResponse(new NoPagingResponse(201,"fail","账号不存在或密码错误")))
+                .onErrorResume(throwable -> ServerResponseUtil.error());
     }
 
     public Mono<ServerResponse> index(ServerRequest request){
@@ -74,43 +65,34 @@ public class Userhandler {
     }
 
     public Mono<ServerResponse> register(ServerRequest request){
-        User newUser = request.bodyToMono(User.class).block();
-        if(newUser.getType() == null || (newUser.getType() != 1 && newUser.getType() != 0)){
-            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .body(fromObject(new NoPagingResponse(202,"error","未指定用户类型")));
-        }
-        Mono<User> user = userRepository.findByUsername(newUser.getUsername());
-        User use = user.block();
-        if(use == null){
-           return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                    .body(fromObject(new NoPagingResponse(200,"success",userRepository.insert(newUser).block())));
-        }
-        return user.flatMap(a -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new NoPagingResponse(201,"fail","账号已存在"))));
+        Mono<User> newUser = request.bodyToMono(User.class);
+        return newUser.flatMap(n -> {
+            if(n.getType() == null || (n.getType() != 1 && n.getType() != 0)){
+                return ServerResponseUtil.createResponse(new NoPagingResponse(202,"error","未指定用户类型"));
+            }
+            return userRepository.findByUsername(n.getUsername()).flatMap(user -> ServerResponseUtil.createResponse(
+                    new NoPagingResponse(201,"fail","账号已存在")))
+                    .switchIfEmpty(userRepository.insert(n).flatMap(user -> ServerResponseUtil.createResponse(
+                            NoPagingResponse.success(user)))).onErrorResume(throwable -> ServerResponseUtil.error());
+        }).switchIfEmpty(ServerResponseUtil.createResponse(new NoPagingResponse(202,"error","请输入数据！")));
     }
 
     public Mono<ServerResponse> deleteUser(ServerRequest request){
-        String userId = request.pathVariable("userId");
-        Mono<Void> data = userRepository.deleteById(userId);
-//        Mono<ServerResponse> notFound =  ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-//                .body(fromObject(new ApiResponse(201,"fail",null)));
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new NoPagingResponse(200,"success",data.block())));
+        return userRepository.deleteById(request.pathVariable("userId"))
+                .flatMap(data -> ServerResponseUtil.createResponse(new NoPagingResponse(200,"success",data)))
+                .onErrorResume(throwable -> ServerResponseUtil.error());
     }
 
     public Mono<ServerResponse> getAllUser(ServerRequest request){
-        PageRequest page = request.bodyToMono(PageRequest.class).block();
-        if(page == null){
-            page = new PageRequest();
-        }
-        int end;
+        Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest()));
         Flux<User> users = userRepository.findAll(Sort.by(new Sort.Order(DESC,"createDate")));
-        Long count = users.count().block();
-        users.range(page.getPageNumber()*page.getPageSize(),end = (page.getPageNumber()+1)*page.getPageSize() > count ?
-                count.intValue() : (page.getPageNumber()+1)*page.getPageSize().intValue());
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(fromObject(new ApiResponse(200,"success",users.collectList().block(),
-                        count.intValue(),page.getPageNumber(),page.getPageSize())));
+        Mono<ApiResponse> apiResponse = ApiResponse.build(users.count(),users.collectList().zipWith(page, (list, pag) -> {
+            Integer start = pag.getPageNumber()*pag.getPageSize();
+            Integer end = (pag.getPageNumber()+1)*pag.getPageSize();
+            list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
+            return list;
+        }),page).onErrorReturn(HourseHandler.noData);
+        return ServerResponseUtil.createByMono(apiResponse,ApiResponse.class);
     }
 
     public Mono<ServerResponse> getUploadToken(ServerRequest request){

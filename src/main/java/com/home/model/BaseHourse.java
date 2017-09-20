@@ -4,6 +4,7 @@ package com.home.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,6 +12,9 @@ import java.util.Date;
 
 @Document(collection = "hourse")
 public abstract class BaseHourse {
+
+    @Id
+    private String id;
 
     private String isDeleted;
 
@@ -48,6 +52,25 @@ public abstract class BaseHourse {
 
     private String type; //0出租，1出售
 
+    @Field("images")
+    private Collection<String> images = new ArrayList<>();
+
+    public Collection<String> getImages() {
+        return images;
+    }
+
+    public void setImages(Collection<String> images) {
+        this.images = images;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getIsDeleted() {
         return isDeleted;
     }
@@ -70,6 +93,10 @@ public abstract class BaseHourse {
 
     public void setUpdateBy(String updateBy) {
         this.updateBy = updateBy;
+    }
+
+    public void setUpdateBy(Mono<String> user){
+        user.subscribe(userId -> this.updateBy = userId);
     }
 
     public Date getCreateDate() {
