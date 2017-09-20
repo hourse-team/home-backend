@@ -108,6 +108,7 @@ public class HourseHandler {
         Mono<BaseHourse> hourseMono = request.bodyToMono(clazz).map(hourse -> {
             hourse.setCreateDate(new Date());
             hourse.setType(type);
+            hourse.setIsDeleted("0");
             return hourse;
         });
         return ServerResponseUtil.createByMono(hourseMono.flatMap(data -> hourseRepository.save(data))
