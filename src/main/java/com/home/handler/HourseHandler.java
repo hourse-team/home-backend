@@ -43,39 +43,44 @@ public class HourseHandler {
 
     public Mono<ServerResponse> getHourses(ServerRequest request){
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
-        Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest())).cache(Duration.ofMinutes(1));
-//        String title = page.block().getName();//极有可能因为这个block
-//        Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
-//                .filter(res -> res.getType().equals(request.pathVariable("type")))
-//                .filter(res -> {
-//                    boolean bool;
-//                    if(StringUtils.isEmpty(title)){
-//                        bool = true;
-//                    } else {
-//                        bool = res.getTitle().contains(title);
-//                    }
-//                    return bool;
-//                });
-//        System.out.println(hourses.collectList().block().size());
-//        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList(),page);
-//        return ServerResponseUtil.createByMono(build,ApiResponse.class);
-        Mono<List<BaseHourse>> hourse = page.flatMap(pageRequest -> hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
-        .filter(res -> res.getType().equals(request.pathVariable("type")))
+        Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest())).cache(Duration.ofSeconds(5));
+        String title = page.block().getName();//极有可能因为这个block
+        Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
+                .filter(res -> res.getType().equals(request.pathVariable("type")))
                 .filter(res -> {
                     boolean bool;
-                    if(StringUtils.isEmpty(pageRequest.getName())){
+                    if(StringUtils.isEmpty(title)){
                         bool = true;
                     } else {
-                        bool = res.getTitle().contains(pageRequest.getName());
+                        bool = res.getTitle().contains(title);
                     }
                     return bool;
-                }).collectList());
-        return page.zipWith(hourse).flatMap(re -> {
-            List<BaseHourse> data = re.getT2();
-            PageRequest pageRequest = re.getT1();
-            ApiResponse response= new ApiResponse(200,"success",data,data.size(),pageRequest.getPageNumber(),pageRequest.getPageSize());
-            return ServerResponseUtil.createResponse(response);
-        });
+                });
+        System.out.println(hourses.collectList().block().size());
+        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
+            Integer start = pag.getPageNumber()*pag.getPageSize();
+            Integer end = (pag.getPageNumber()+1)*pag.getPageSize();
+            list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
+            return list;
+        }),page).onErrorReturn(noData);
+        return ServerResponseUtil.createByMono(build,ApiResponse.class);
+//        Mono<List<BaseHourse>> hourse = page.flatMap(pageRequest -> hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
+//        .filter(res -> res.getType().equals(request.pathVariable("type")))
+//                .filter(res -> {
+//                    boolean bool;
+//                    if(StringUtils.isEmpty(pageRequest.getName())){
+//                        bool = true;
+//                    } else {
+//                        bool = res.getTitle().contains(pageRequest.getName());
+//                    }
+//                    return bool;
+//                }).collectList());
+//        return page.zipWith(hourse).flatMap(re -> {
+//            List<BaseHourse> data = re.getT2();
+//            PageRequest pageRequest = re.getT1();
+//            ApiResponse response= new ApiResponse(200,"success",data,data.size(),pageRequest.getPageNumber(),pageRequest.getPageSize());
+//            return ServerResponseUtil.createResponse(response);
+//        });
     }
 
     public Mono<ServerResponse> getHourse(ServerRequest request){
