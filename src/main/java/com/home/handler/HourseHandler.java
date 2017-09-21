@@ -11,12 +11,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
@@ -37,27 +43,39 @@ public class HourseHandler {
 
     public Mono<ServerResponse> getHourses(ServerRequest request){
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
-        Mono<PageRequest> page = request.bodyToMono(PageRequest.class);
-        System.out.println(page.block().toString());
-        Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
-                .filter(res -> res.getType().equals(request.pathVariable("type")))
+        Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest())).cache(Duration.ofMinutes(1));
+//        String title = page.block().getName();//极有可能因为这个block
+//        Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
+//                .filter(res -> res.getType().equals(request.pathVariable("type")))
+//                .filter(res -> {
+//                    boolean bool;
+//                    if(StringUtils.isEmpty(title)){
+//                        bool = true;
+//                    } else {
+//                        bool = res.getTitle().contains(title);
+//                    }
+//                    return bool;
+//                });
+//        System.out.println(hourses.collectList().block().size());
+//        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList(),page);
+//        return ServerResponseUtil.createByMono(build,ApiResponse.class);
+        Mono<List<BaseHourse>> hourse = page.flatMap(pageRequest -> hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
+        .filter(res -> res.getType().equals(request.pathVariable("type")))
                 .filter(res -> {
-                    String title = page.block().getName();//极有可能因为这个block
                     boolean bool;
-                    if(title.isEmpty()){
+                    if(StringUtils.isEmpty(pageRequest.getName())){
                         bool = true;
                     } else {
-                        bool = res.getTitle().contains(title);
+                        bool = res.getTitle().contains(pageRequest.getName());
                     }
                     return bool;
-                });
-        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
-            Integer start = pag.getPageNumber()*pag.getPageSize();
-            Integer end = (pag.getPageNumber()+1)*pag.getPageSize();
-            list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
-            return list;
-        }),page);
-        return ServerResponseUtil.createByMono(build,ApiResponse.class);
+                }).collectList());
+        return page.zipWith(hourse).flatMap(re -> {
+            List<BaseHourse> data = re.getT2();
+            PageRequest pageRequest = re.getT1();
+            ApiResponse response= new ApiResponse(200,"success",data,data.size(),pageRequest.getPageNumber(),pageRequest.getPageSize());
+            return ServerResponseUtil.createResponse(response);
+        });
     }
 
     public Mono<ServerResponse> getHourse(ServerRequest request){

@@ -97,10 +97,10 @@ public class ApiResponse {
             response.status=200;
             response.msg = "success";
             return response;
-        }).zipWith(page,(response,request) -> {
-            response.pageNumber = request.getPageNumber();
-            response.pageSize = request.getPageSize();
-            return response;
+        }).zipWith(page,(res,request) -> {
+            res.pageNumber = request.getPageNumber();
+            res.pageSize = request.getPageSize();
+            return res;
         });
     }
 }

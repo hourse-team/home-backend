@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.WebSession;
@@ -26,6 +27,7 @@ import org.springframework.web.server.session.WebSessionStore;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.*;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
@@ -84,7 +86,7 @@ public class Userhandler {
     }
 
     public Mono<ServerResponse> getAllUser(ServerRequest request){
-        Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest()));
+        Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest())).cache(Duration.ofSeconds(5));
         Flux<User> users = userRepository.findAll(Sort.by(new Sort.Order(DESC,"createDate")));
         Mono<ApiResponse> apiResponse = ApiResponse.build(users.count(),users.collectList().zipWith(page, (list, pag) -> {
             Integer start = pag.getPageNumber()*pag.getPageSize();
@@ -110,8 +112,28 @@ public class Userhandler {
                 .body(fromObject(new NoPagingResponse(200,"success",token)));
     }
     public static void main(String[] args){
-            Flux.just(1,2,3,4,5).range(2, 3)
-                    .map(i -> "" + i).subscribe(System.out::println);
-
+//        Mono<Integer> mono = Mono.just(1);
+//        Mono<String> str= Mono.just("132");
+//        String str1 = str.block();
+//        Mono<String> mono1 = mono.zipWith(str,(m,s) -> s+m);
+//                mono1.zipWith(str,(y,t) -> y+t).subscribe(System.out::println);
+        Mono<PageRequest> page = Mono.just(new PageRequest());
+        String name = page.block().getName();
+        page.subscribe(System.out::println);
+        Flux<Integer> hourses = Flux.just(1,2,3,4,5,6,7).filter(a -> {boolean bool;
+            if(StringUtils.isEmpty(name)){
+                bool = true;
+            } else {
+                bool = a > 8;
+            }
+            return bool;
+        });
+        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
+            Integer start = pag.getPageNumber()*pag.getPageSize();
+            Integer end = (pag.getPageNumber()+1)*pag.getPageSize();
+            list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
+            return list;
+        }),page);
+        build.subscribe(System.out::println);
     }
 }
