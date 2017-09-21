@@ -137,14 +137,10 @@ public class HourseHandler {
         Integer pageNumber = Integer.valueOf(request.queryParam("pageNumber").orElse("0"));
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
         Pageable pageable = org.springframework.data.domain.PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC,"createDate");
+        Mono<Long> count = hourseRepository.count();
         return hourseRepository.findByTypeAndIsDeleted(pageable,type,"0")
-                .collectList().map(list -> {
-                    Integer start = pageNumber*pageSize;
-                    Integer end = (pageNumber+1)*pageSize;
-                    list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
-                    return list;
-                }).flatMap(data -> ServerResponseUtil.createResponse(FrontResponse.success(
-                        new FrontData(data.size(),pageNumber,pageSize,data))));
+                .flatMap(data -> ServerResponseUtil.createResponse(FrontResponse.success(
+                        new FrontData(data.getT2().intValue(),pageNumber,pageSize,data.getT1()))));
 //                .onErrorResume(throwable -> ServerResponseUtil.error());
     }
 }
