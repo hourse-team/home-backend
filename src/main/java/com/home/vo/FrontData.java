@@ -51,5 +51,6 @@ public class FrontData {
         this.pageNumber = pageNumber;
         this.pageSize = pageSize;
         this.hourses = hourses;
+        System.out.println(totalCount);
     }
 }
