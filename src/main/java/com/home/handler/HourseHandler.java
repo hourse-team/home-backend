@@ -142,7 +142,7 @@ public class HourseHandler {
                     list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
                     return list;
                 }).flatMap(data -> ServerResponseUtil.createResponse(FrontResponse.success(
-                        new FrontData(data.size(),pageNumber,pageSize,data))))
-                .onErrorResume(throwable -> ServerResponseUtil.error());
+                        new FrontData(data.size(),pageNumber,pageSize,data))));
+//                .onErrorResume(throwable -> ServerResponseUtil.error());
     }
 }
