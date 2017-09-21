@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Date;
 
 @Document(collection = "hourse")
-public abstract class BaseHourse {
+public class BaseHourse {
 
     @Id
     private String id;

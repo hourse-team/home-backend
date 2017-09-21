@@ -8,6 +8,7 @@ import com.home.util.ServerResponseUtil;
 import com.home.vo.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
@@ -135,10 +136,15 @@ public class HourseHandler {
         String type = request.pathVariable("type");
         Integer pageSize = Integer.valueOf(request.queryParam("pageSize").orElse("10"));
         Integer pageNumber = Integer.valueOf(request.queryParam("pageNumber").orElse("0"));
-        Sort sort = new Sort(Sort.Direction.DESC,"createDate");
+//        Sort sort = new Sort(Sort.Direction.DESC,"createDate");
         Pageable pageable = org.springframework.data.domain.PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC,"createDate");
-        Mono<Long> count = hourseRepository.count();
-        return hourseRepository.findByTypeAndIsDeleted(pageable,type,"0")
+        BaseHourse baseHourse = new BaseHourse();
+        baseHourse.setType(type);
+        baseHourse.setIsDeleted("0");
+        Example<BaseHourse> example = Example.of(baseHourse);
+        Mono<Long> count = hourseRepository.count(example);
+        return hourseRepository.findByTypeAndIsDeleted(pageable,type,"0").collectList()
+                .zipWith(count)
                 .flatMap(data -> ServerResponseUtil.createResponse(FrontResponse.success(
                         new FrontData(data.getT2().intValue(),pageNumber,pageSize,data.getT1()))));
 //                .onErrorResume(throwable -> ServerResponseUtil.error());
