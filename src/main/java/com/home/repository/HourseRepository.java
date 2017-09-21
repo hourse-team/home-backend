@@ -1,16 +1,16 @@
 package com.home.repository;
 
 import com.home.model.BaseHourse;
-import com.home.model.Hourse;
+import com.home.repositoryImpl.ReactivePagingRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * Created by Administrator on 2017/8/19.
  */
-public interface HourseRepository extends ReactiveMongoRepository<BaseHourse,String>{
+public interface HourseRepository extends ReactiveMongoRepository<BaseHourse,String>,ReactivePagingRepository<BaseHourse,String> {
 
     <T extends BaseHourse> Flux<T> findByCreateByOrIsPublic(Sort sort, String userId, String state);
 

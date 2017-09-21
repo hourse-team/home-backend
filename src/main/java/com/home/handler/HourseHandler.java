@@ -8,6 +8,7 @@ import com.home.util.ServerResponseUtil;
 import com.home.vo.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -135,7 +136,8 @@ public class HourseHandler {
         Integer pageSize = Integer.valueOf(request.queryParam("pageSize").orElse("10"));
         Integer pageNumber = Integer.valueOf(request.queryParam("pageNumber").orElse("0"));
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
-        return hourseRepository.findByTypeAndIsDeleted(sort,type,"0")
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC,"createDate");
+        return hourseRepository.findByTypeAndIsDeleted(pageable,type,"0")
                 .collectList().map(list -> {
                     Integer start = pageNumber*pageSize;
                     Integer end = (pageNumber+1)*pageSize;
