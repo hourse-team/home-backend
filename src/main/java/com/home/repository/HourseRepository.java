@@ -18,4 +18,6 @@ public interface HourseRepository extends ReactiveMongoRepository<BaseHourse,Str
 
     <T extends BaseHourse> Flux<T> findByTypeAndIsDeleted(Sort sort,String status,String isDeleted);
 
+    Long countByTypeAndIsDeleted(String type,String isDeleted);
+
 }

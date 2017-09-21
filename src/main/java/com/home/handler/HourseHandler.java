@@ -138,15 +138,15 @@ public class HourseHandler {
         Integer pageNumber = Integer.valueOf(request.queryParam("pageNumber").orElse("0"));
 //        Sort sort = new Sort(Sort.Direction.DESC,"createDate");
         Pageable pageable = org.springframework.data.domain.PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC,"createDate");
-        BaseHourse baseHourse = new BaseHourse();
-        baseHourse.setType(type);
-        baseHourse.setIsDeleted("0");
-        Example<BaseHourse> example = Example.of(baseHourse);
-        Mono<Long> count = hourseRepository.count(example);
+//        BaseHourse baseHourse = new BaseHourse();
+//        baseHourse.setType(type);
+//        baseHourse.setIsDeleted("0");
+//        Example<BaseHourse> example = Example.of(baseHourse);
+//        Mono<Long> count = hourseRepository.count(example);
+        Long count = hourseRepository.countByTypeAndIsDeleted(type,"0");
         return hourseRepository.findByTypeAndIsDeleted(pageable,type,"0").collectList()
-                .zipWith(count)
                 .flatMap(data -> ServerResponseUtil.createResponse(FrontResponse.success(
-                        new FrontData(data.getT2().intValue(),pageNumber,pageSize,data.getT1()))));
+                        new FrontData(count.intValue(),pageNumber,pageSize,data))));
 //                .onErrorResume(throwable -> ServerResponseUtil.error());
     }
 }
