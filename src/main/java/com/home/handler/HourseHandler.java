@@ -44,6 +44,8 @@ public class HourseHandler {
 
     public static final NoPagingResponse error = NoPagingResponse.error("参数不对，服务器拒绝响应");
 
+    private List<BaseHourse> empty = Collections.EMPTY_LIST;
+
     public Mono<ServerResponse> getHourses(ServerRequest request){
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
         String userId = request.pathVariable("userId");
@@ -68,7 +70,7 @@ public class HourseHandler {
             } else {
                 hour = hourseRepository.findByCreateByAndTypeAndTitleLikeOrIsPublicAndTypeAndTitleLike(sort,userId,type,p.getName(),"1",type,p.getName()).buffer(p.getPageSize());
             }
-            return ServerResponseUtil.createByMono(ApiResponse.build(hour.count(),hour.elementAt(p.getPageNumber()),p.getPageNumber(),p.getPageSize()),ApiResponse.class);
+            return ServerResponseUtil.createByMono(ApiResponse.build(hour.count(),hour.elementAt(p.getPageNumber()).onErrorResume(t -> Mono.just(empty)),p.getPageNumber(),p.getPageSize()),ApiResponse.class);
         }).onErrorResume(throwable ->  ServerResponseUtil.error());
 //        System.out.println(hourses.collectList().block().size());
 //        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
@@ -173,6 +175,7 @@ public class HourseHandler {
 ////                .onErrorResume(throwable -> ServerResponseUtil.error());
 //        Mono<Page<BaseHourse>> pages = hourseRepository.findByTypeAndIsDeleted(pageable,type,"0");
         Flux<List<BaseHourse>> hourse = hourseRepository.findByTypeAndIsDeleted(sort,type,"0").buffer(pageSize);
-        return ServerResponseUtil.createByMono(ApiResponse.build(hourse.count(),hourse.elementAt(pageNumber),pageNumber,pageSize),ApiResponse.class);
+        return ServerResponseUtil.createByMono(ApiResponse.build(hourse.count(),hourse.elementAt(pageNumber).onErrorResume(t -> Mono.just(empty)),pageNumber,pageSize),ApiResponse.class)
+                .onErrorResume(throwable -> ServerResponseUtil.error());
     }
 }
