@@ -69,7 +69,7 @@ public class HourseHandler {
                 hour = hourseRepository.findByCreateByAndTypeAndTitleLikeOrIsPublicAndTypeAndTitleLike(sort,userId,type,p.getName(),"1",type,p.getName()).buffer(p.getPageSize());
             }
             return ServerResponseUtil.createByMono(ApiResponse.build(hour.count(),hour.elementAt(p.getPageNumber()),p.getPageNumber(),p.getPageSize()),ApiResponse.class);
-        });
+        }).onErrorResume(throwable ->  ServerResponseUtil.error());
 //        System.out.println(hourses.collectList().block().size());
 //        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
 //            Integer start = pag.getPageNumber()*pag.getPageSize();
