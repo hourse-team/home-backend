@@ -14,8 +14,6 @@ public interface HourseRepository extends ReactiveMongoRepository<BaseHourse,Str
 
     <T extends BaseHourse> Flux<T> findByCreateByOrIsPublic(Sort sort, String userId, String state);
 
-//    <T extends BaseHourse> Flux<T> findByCreateByOrStateAndTitleLike(Sort sort,String userId,Integer state,String title);
-
     <T extends BaseHourse> Flux<T> findByTypeAndIsDeleted(Sort sort,String status,String isDeleted);
 
     <T extends BaseHourse> Flux<T> findByCreateByAndTypeOrIsPublicAndType(Sort sort,String userId,String type, String isPublic,String types);
