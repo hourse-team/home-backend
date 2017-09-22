@@ -1,6 +1,7 @@
 package com.home.vo;
 
 import com.home.model.BaseHourse;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ public class FrontData {
 
     private Integer pageSize;
 
-    private List<BaseHourse> hourses;
+    private Object hourses;
 
     public Integer getTotalCount() {
         return totalCount;
@@ -38,12 +39,16 @@ public class FrontData {
         this.pageSize = pageSize;
     }
 
-    public List<BaseHourse> getHourses() {
+    public Object getHourses() {
         return hourses;
     }
 
     public void setHourses(List<BaseHourse> hourses) {
         this.hourses = hourses;
+    }
+
+    public FrontData(){
+
     }
 
     public FrontData(Integer totalCount, Integer pageNumber, Integer pageSize, List<BaseHourse> hourses) {
@@ -52,5 +57,16 @@ public class FrontData {
         this.pageSize = pageSize;
         this.hourses = hourses;
         System.out.println(totalCount);
+    }
+
+    public static Mono<FrontData> build(Mono<Long> count, Mono<?> hourse, Integer pageNumber, Integer pageSize){
+        return count.zipWith(hourse,(sum,house) -> {
+            FrontData response = new FrontData();
+            response.totalCount = sum.intValue();
+            response.hourses = house;
+            response.pageNumber = pageNumber;
+            response.pageSize = pageSize;
+            return response;
+        });
     }
 }

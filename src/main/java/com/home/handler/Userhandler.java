@@ -120,20 +120,6 @@ public class Userhandler {
         Mono<PageRequest> page = Mono.just(new PageRequest());
         String name = page.block().getName();
         page.subscribe(System.out::println);
-        Flux<Integer> hourses = Flux.just(1,2,3,4,5,6,7).filter(a -> {boolean bool;
-            if(StringUtils.isEmpty(name)){
-                bool = true;
-            } else {
-                bool = a > 8;
-            }
-            return bool;
-        });
-        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
-            Integer start = pag.getPageNumber()*pag.getPageSize();
-            Integer end = (pag.getPageNumber()+1)*pag.getPageSize();
-            list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
-            return list;
-        }),page);
-        build.subscribe(System.out::println);
+        Flux.just(1,2,3,4,5,6,7).buffer(10).elementAt(0).subscribe(System.out::println);
     }
 }

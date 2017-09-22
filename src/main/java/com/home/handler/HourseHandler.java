@@ -9,6 +9,7 @@ import com.home.vo.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
@@ -43,29 +44,42 @@ public class HourseHandler {
 
     public static final NoPagingResponse error = NoPagingResponse.error("参数不对，服务器拒绝响应");
 
+    private List<BaseHourse> empty = Collections.EMPTY_LIST;
+
     public Mono<ServerResponse> getHourses(ServerRequest request){
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
+        String userId = request.pathVariable("userId");
+        String type = request.pathVariable("type");
         Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest())).cache(Duration.ofSeconds(5));
-        String title = page.block().getName();//极有可能因为这个block
-        Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
-                .filter(res -> res.getType().equals(request.pathVariable("type")))
-                .filter(res -> {
-                    boolean bool;
-                    if(StringUtils.isEmpty(title)){
-                        bool = true;
-                    } else {
-                        bool = res.getTitle().contains(title);
-                    }
-                    return bool;
-                });
-        System.out.println(hourses.collectList().block().size());
-        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
-            Integer start = pag.getPageNumber()*pag.getPageSize();
-            Integer end = (pag.getPageNumber()+1)*pag.getPageSize();
-            list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
-            return list;
-        }),page).onErrorReturn(noData);
-        return ServerResponseUtil.createByMono(build,ApiResponse.class);
+        System.out.println(page.block().getName());//极有可能因为这个block
+//        Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
+//                .filter(res -> res.getType().equals(request.pathVariable("type")))
+//                .filter(res -> {
+//                    boolean bool;
+//                    if(StringUtils.isEmpty(title)){
+//                        bool = true;
+//                    } else {
+//                        bool = res.getTitle().contains(title);
+//                    }
+//                    return bool;
+//                });
+        return page.flatMap(p -> {
+            Flux<List<BaseHourse>> hour;
+            if(StringUtils.isEmpty(p.getName())){
+                hour = hourseRepository.findByCreateByAndTypeOrIsPublicAndType(sort,userId,type,"1",type).buffer(p.getPageSize());
+            } else {
+                hour = hourseRepository.findByCreateByAndTypeAndTitleLikeOrIsPublicAndTypeAndTitleLike(sort,userId,type,p.getName(),"1",type,p.getName()).buffer(p.getPageSize());
+            }
+            return ServerResponseUtil.createByMono(ApiResponse.build(hour.count(),hour.elementAt(p.getPageNumber()).onErrorResume(t -> Mono.just(empty)),p.getPageNumber(),p.getPageSize()),ApiResponse.class);
+        }).onErrorResume(throwable ->  ServerResponseUtil.error());
+//        System.out.println(hourses.collectList().block().size());
+//        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
+//            Integer start = pag.getPageNumber()*pag.getPageSize();
+//            Integer end = (pag.getPageNumber()+1)*pag.getPageSize();
+//            list = end > list.size() ? list.subList(start,list.size()) : list.subList(start,end);
+//            return list;
+//        }),page).onErrorReturn(noData);
+//        return ServerResponseUtil.createByMono(build,ApiResponse.class);
 //        Mono<List<BaseHourse>> hourse = page.flatMap(pageRequest -> hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
 //        .filter(res -> res.getType().equals(request.pathVariable("type")))
 //                .filter(res -> {
@@ -83,6 +97,17 @@ public class HourseHandler {
 //            ApiResponse response= new ApiResponse(200,"success",data,data.size(),pageRequest.getPageNumber(),pageRequest.getPageSize());
 //            return ServerResponseUtil.createResponse(response);
 //        });
+//        Mono<Pageable> pageable = page.map(p -> org.springframework.data.domain.PageRequest
+//                .of(p.getPageNumber(),p.getPageSize(), Sort.Direction.DESC,"createDate"));
+//        Mono<Page<BaseHourse>> pageData = pageable.zipWith(page).flatMap(a -> {
+//            Pageable able = a.getT1();
+//            PageRequest pageRequest = a.getT2();
+////            Page<BaseHourse> hourse = hourseRepository.findCreateByAndTitleLikeOrIsPublic(able,request.pathVariable("userId"),pageRequest.getName(),"0");
+////            return Mono.just(hourse);
+//            return hourseRepository.findCreateByAndTitleLikeOrIsPublic(able,request.pathVariable("userId"),pageRequest.getName(),"0");
+//        });
+//        return pageData.flatMap(data -> ServerResponseUtil.createResponse(new ApiResponse(200,"success",data.getContent(),(int)data.getTotalElements(),
+//                data.getNumber(),data.getSize())));
     }
 
     public Mono<ServerResponse> getHourse(ServerRequest request){
@@ -136,17 +161,22 @@ public class HourseHandler {
         String type = request.pathVariable("type");
         Integer pageSize = Integer.valueOf(request.queryParam("pageSize").orElse("10"));
         Integer pageNumber = Integer.valueOf(request.queryParam("pageNumber").orElse("0"));
-//        Sort sort = new Sort(Sort.Direction.DESC,"createDate");
-        Pageable pageable = org.springframework.data.domain.PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC,"createDate");
-        BaseHourse baseHourse = new BaseHourse();
-        baseHourse.setType(type);
-        baseHourse.setIsDeleted("0");
-        Example<BaseHourse> example = Example.of(baseHourse);
-        Mono<Long> count = hourseRepository.count(example);
-        return hourseRepository.findByTypeAndIsDeleted(pageable,type,"0").collectList()
-                .zipWith(count)
-                .flatMap(data -> ServerResponseUtil.createResponse(FrontResponse.success(
-                        new FrontData(data.getT2().intValue(),pageNumber,pageSize,data.getT1()))));
-//                .onErrorResume(throwable -> ServerResponseUtil.error());
+        Sort sort = new Sort(Sort.Direction.DESC,"createDate");
+//        Pageable pageable = org.springframework.data.domain.PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC,"createDate");
+//        BaseHourse baseHourse = new BaseHourse();
+//        baseHourse.setType(type);
+//        baseHourse.setIsDeleted("0");
+//        Example<BaseHourse> example = Example.of(baseHourse);
+//        Mono<Long> count = hourseRepository.count(example);
+//        return hourseRepository.findByTypeAndIsDeleted(pageable,type,"0").collectList()
+//                .zipWith(count)
+//                .flatMap(data -> ServerResponseUtil.createResponse(FrontResponse.success(
+//                        new FrontData(data.getT2().intValue(),pageNumber,pageSize,data.getT1()))));
+////                .onErrorResume(throwable -> ServerResponseUtil.error());
+//        Mono<Page<BaseHourse>> pages = hourseRepository.findByTypeAndIsDeleted(pageable,type,"0");
+        Flux<List<BaseHourse>> hourse = hourseRepository.findByTypeAndIsDeleted(sort,type,"0").buffer(pageSize);
+        return ServerResponseUtil.createByMono(FrontData.build(hourse.count(),hourse.elementAt(pageNumber).onErrorResume(t -> Mono.just(empty)),pageNumber,pageSize)
+                .map(data -> new FrontResponse(200,"success",data)),FrontResponse.class)
+                .onErrorResume(throwable -> ServerResponseUtil.error());
     }
 }
