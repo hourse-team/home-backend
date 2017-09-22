@@ -2,6 +2,8 @@ package com.home.model;
 
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.IndexDirection;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import reactor.core.publisher.Mono;
@@ -22,6 +24,7 @@ public class BaseHourse {
 
     private String updateBy;
 
+    @Indexed(direction = IndexDirection.ASCENDING)
     private Date createDate;
 
     private Date updateDate;
