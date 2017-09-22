@@ -175,7 +175,8 @@ public class HourseHandler {
 ////                .onErrorResume(throwable -> ServerResponseUtil.error());
 //        Mono<Page<BaseHourse>> pages = hourseRepository.findByTypeAndIsDeleted(pageable,type,"0");
         Flux<List<BaseHourse>> hourse = hourseRepository.findByTypeAndIsDeleted(sort,type,"0").buffer(pageSize);
-        return ServerResponseUtil.createByMono(ApiResponse.build(hourse.count(),hourse.elementAt(pageNumber).onErrorResume(t -> Mono.just(empty)),pageNumber,pageSize),ApiResponse.class)
+        return ServerResponseUtil.createByMono(FrontData.build(hourse.count(),hourse.elementAt(pageNumber).onErrorResume(t -> Mono.just(empty)),pageNumber,pageSize)
+                .map(data -> new FrontResponse(200,"success",data)),FrontResponse.class)
                 .onErrorResume(throwable -> ServerResponseUtil.error());
     }
 }
