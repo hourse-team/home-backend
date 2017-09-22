@@ -103,4 +103,17 @@ public class ApiResponse {
             return res;
         });
     }
+
+    public static Mono<ApiResponse> build(Mono<Long> count, Mono<?> hourse,Integer pageNumber,Integer pageSize){
+        return count.zipWith(hourse,(sum,house) -> {
+            ApiResponse response = new ApiResponse();
+            response.totalCount = sum.intValue();
+            response.data = house;
+            response.status=200;
+            response.msg = "success";
+            response.pageNumber = pageNumber;
+            response.pageSize = pageSize;
+            return response;
+        });
+    }
 }
