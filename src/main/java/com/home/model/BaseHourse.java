@@ -45,7 +45,9 @@ public class BaseHourse {
 
     private String addr;
 
-    private String phone;
+    private String hostPhone;
+
+    private String salesManPhone;
 
     private String status;
 
@@ -182,12 +184,20 @@ public class BaseHourse {
         this.addr = addr;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getHostPhone() {
+        return hostPhone;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setHostPhone(String hostPhone) {
+        this.hostPhone = hostPhone;
+    }
+
+    public String getSalesManPhone() {
+        return salesManPhone;
+    }
+
+    public void setSalesManPhone(String salesManPhone) {
+        this.salesManPhone = salesManPhone;
     }
 
     public String getStatus() {

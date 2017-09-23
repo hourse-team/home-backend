@@ -51,7 +51,7 @@ public class HourseHandler {
         String userId = request.pathVariable("userId");
         String type = request.pathVariable("type");
         Mono<PageRequest> page = request.bodyToMono(PageRequest.class).switchIfEmpty(Mono.just(new PageRequest())).cache(Duration.ofSeconds(5));
-        System.out.println(page.block().getName());//极有可能因为这个block
+//        System.out.println(page.block().getName());//极有可能因为这个block
 //        Flux<BaseHourse> hourses = hourseRepository.findByCreateByOrIsPublic(sort,request.pathVariable("userId"),"1")
 //                .filter(res -> res.getType().equals(request.pathVariable("type")))
 //                .filter(res -> {
@@ -64,13 +64,15 @@ public class HourseHandler {
 //                    return bool;
 //                });
         return page.flatMap(p -> {
-            Flux<List<BaseHourse>> hour;
+            Flux<BaseHourse> hour;
             if(StringUtils.isEmpty(p.getName())){
-                hour = hourseRepository.findByCreateByAndTypeOrIsPublicAndType(sort,userId,type,"1",type).buffer(p.getPageSize());
+                hour = hourseRepository.findByCreateByAndTypeOrIsPublicAndType(sort,userId,type,"1",type).filter(data -> Objects.equals("0",data.getIsDeleted()));
             } else {
-                hour = hourseRepository.findByCreateByAndTypeAndTitleLikeOrIsPublicAndTypeAndTitleLike(sort,userId,type,p.getName(),"1",type,p.getName()).buffer(p.getPageSize());
+                hour = hourseRepository.findByCreateByAndTypeAndTitleLikeOrIsPublicAndTypeAndTitleLike(sort,userId,type,p.getName(),"1",type,p.getName())
+                        .filter(data -> Objects.equals("0",data.getIsDeleted()));
             }
-            return ServerResponseUtil.createByMono(ApiResponse.build(hour.count(),hour.elementAt(p.getPageNumber()).onErrorResume(t -> Mono.just(empty)),p.getPageNumber(),p.getPageSize()),ApiResponse.class);
+            return ServerResponseUtil.createByMono(ApiResponse.build(hour.count(),hour.buffer(p.getPageSize())
+                    .elementAt(p.getPageNumber()).onErrorResume(t -> Mono.just(empty)),p.getPageNumber(),p.getPageSize()),ApiResponse.class);
         }).onErrorResume(throwable ->  ServerResponseUtil.error());
 //        System.out.println(hourses.collectList().block().size());
 //        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
@@ -174,8 +176,8 @@ public class HourseHandler {
 //                        new FrontData(data.getT2().intValue(),pageNumber,pageSize,data.getT1()))));
 ////                .onErrorResume(throwable -> ServerResponseUtil.error());
 //        Mono<Page<BaseHourse>> pages = hourseRepository.findByTypeAndIsDeleted(pageable,type,"0");
-        Flux<List<BaseHourse>> hourse = hourseRepository.findByTypeAndIsDeleted(sort,type,"0").buffer(pageSize);
-        return ServerResponseUtil.createByMono(FrontData.build(hourse.count(),hourse.elementAt(pageNumber).onErrorResume(t -> Mono.just(empty)),pageNumber,pageSize)
+        Flux<BaseHourse> hourse = hourseRepository.findByTypeAndIsDeleted(sort,type,"0");
+        return ServerResponseUtil.createByMono(FrontData.build(hourse.count(),hourse.buffer(pageSize).elementAt(pageNumber).onErrorResume(t -> Mono.just(empty)),pageNumber,pageSize)
                 .map(data -> new FrontResponse(200,"success",data)),FrontResponse.class)
                 .onErrorResume(throwable -> ServerResponseUtil.error());
     }
