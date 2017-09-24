@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 @NoRepositoryBean
 public interface ReactivePagingRepository<T,ID>{
 
-//    <T extends BaseHourse> Mono<Page<T>> findByTypeAndIsDeleted(Pageable pageable, String status, String isDeleted);
+    <T extends BaseHourse> Flux<T> findByTypeAndIsDeleted(Pageable pageable, String status, String isDeleted);
 //
 //    <T extends BaseHourse> Mono<Page<T>> findCreateByAndTitleLikeOrIsPublic(Pageable pageable,String userId,String title,String isPublic);
 }

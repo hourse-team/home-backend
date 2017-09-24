@@ -4,14 +4,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home.model.*;
 import com.home.repository.HourseRepository;
+import com.home.repository.UserRepository;
 import com.home.util.ServerResponseUtil;
 import com.home.vo.*;
+import com.home.vo.PageRequest;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -38,6 +37,9 @@ public class HourseHandler {
     @Autowired
     HourseRepository hourseRepository;
 
+    @Autowired
+    UserRepository userRepository;
+
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(HourseHandler.class);
 
     public static final ApiResponse noData = new ApiResponse(200,"page parameter error",Collections.EMPTY_LIST,0,0,0);
@@ -63,17 +65,46 @@ public class HourseHandler {
 //                    }
 //                    return bool;
 //                });
+        User user = userRepository.findById(userId).block();
         return page.flatMap(p -> {
             Flux<BaseHourse> hour;
-            if(StringUtils.isEmpty(p.getName())){
-                hour = hourseRepository.findByCreateByAndTypeOrIsPublicAndType(sort,userId,type,"1",type).filter(data -> Objects.equals("0",data.getIsDeleted()));
+            Mono<Long> count;
+//            BaseHourse baseHourse = new BaseHourse();
+//            baseHourse.setType(type);
+//            baseHourse.setIsDeleted("0");
+//            ExampleMatcher matcher = ExampleMatcher.matching()
+//                    .withMatcher("type",match -> match.startsWith())
+//                    .withMatcher("isDeleted",match -> match.startsWith());
+//            if(!StringUtils.isEmpty(p.getName())){
+//                baseHourse.setTitle(p.getName());
+//                matcher.withMatcher("title",match -> match.contains());
+//            }
+//            Example<BaseHourse> example = Example.of(baseHourse);
+              Pageable pageable = org.springframework.data.domain.PageRequest.of(p.getPageNumber(),p.getPageSize(), Sort.Direction.DESC,"createDate");
+//            hour = hourseRepository.findByCreateByOrIsPublic(pageable,example,userId,"1");
+            if(user.getType() == 0) {
+                if (StringUtils.isEmpty(p.getName())) {
+                    hour = hourseRepository.findByCreateByAndTypeAndIsDeletedOrIsPublicAndTypeAndIsDeleted(
+                            pageable, userId, type, "0", "1", type, "0");
+                    count = hourseRepository.countByCreateByAndTypeAndIsDeletedOrIsPublicAndTypeAndIsDeleted(userId, type, "0", "1", type, "0");
+                } else {
+                    hour = hourseRepository.findByCreateByAndTypeAndTitleLikeAndIsDeletedOrIsPublicAndTypeAndTitleLikeAndIsDeleted(
+                            pageable, userId, type, p.getName(), "0", "1", type, p.getName(), "0");
+                    count = hourseRepository.countByCreateByAndTypeAndTitleLikeAndIsDeletedOrIsPublicAndTypeAndTitleLikeAndIsDeleted(
+                            userId, type, p.getName(), "0", "1", type, p.getName(), "0");
+                }
             } else {
-                hour = hourseRepository.findByCreateByAndTypeAndTitleLikeOrIsPublicAndTypeAndTitleLike(sort,userId,type,p.getName(),"1",type,p.getName())
-                        .filter(data -> Objects.equals("0",data.getIsDeleted()));
+                if (StringUtils.isEmpty(p.getName())) {
+                    hour = hourseRepository.findByIsDeletedAndType(pageable,"0",type);
+                    count = hourseRepository.countByIsDeletedAndType("0",type);
+                } else {
+                    hour = hourseRepository.findByIsDeletedAndTypeAndTitleLike(pageable,"0",type,p.getName());
+                    count = hourseRepository.countByIsDeletedAndTypeAndTitleLike("0",type,p.getName());
+                }
             }
-            return ServerResponseUtil.createByMono(ApiResponse.build(hour.count(),hour.buffer(p.getPageSize())
-                    .elementAt(p.getPageNumber()).onErrorResume(t -> Mono.just(empty)),p.getPageNumber(),p.getPageSize()),ApiResponse.class);
-        }).onErrorResume(throwable ->  ServerResponseUtil.error());
+            return ServerResponseUtil.createByMono(ApiResponse.build(count,hour.collectList()
+                    ,p.getPageNumber(),p.getPageSize()),ApiResponse.class);
+        });
 //        System.out.println(hourses.collectList().block().size());
 //        Mono<ApiResponse> build = ApiResponse.build(hourses.count(), hourses.collectList().zipWith(page, (list, pag) -> {
 //            Integer start = pag.getPageNumber()*pag.getPageSize();
@@ -164,20 +195,16 @@ public class HourseHandler {
         Integer pageSize = Integer.valueOf(request.queryParam("pageSize").orElse("10"));
         Integer pageNumber = Integer.valueOf(request.queryParam("pageNumber").orElse("0"));
         Sort sort = new Sort(Sort.Direction.DESC,"createDate");
-//        Pageable pageable = org.springframework.data.domain.PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC,"createDate");
-//        BaseHourse baseHourse = new BaseHourse();
-//        baseHourse.setType(type);
-//        baseHourse.setIsDeleted("0");
-//        Example<BaseHourse> example = Example.of(baseHourse);
-//        Mono<Long> count = hourseRepository.count(example);
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC,"createDate");
+        Mono<Long> count = hourseRepository.countByTypeAndIsDeleted(type,"0");
 //        return hourseRepository.findByTypeAndIsDeleted(pageable,type,"0").collectList()
 //                .zipWith(count)
 //                .flatMap(data -> ServerResponseUtil.createResponse(FrontResponse.success(
 //                        new FrontData(data.getT2().intValue(),pageNumber,pageSize,data.getT1()))));
 ////                .onErrorResume(throwable -> ServerResponseUtil.error());
 //        Mono<Page<BaseHourse>> pages = hourseRepository.findByTypeAndIsDeleted(pageable,type,"0");
-        Flux<BaseHourse> hourse = hourseRepository.findByTypeAndIsDeleted(sort,type,"0");
-        return ServerResponseUtil.createByMono(FrontData.build(hourse.count(),hourse.buffer(pageSize).elementAt(pageNumber).onErrorResume(t -> Mono.just(empty)),pageNumber,pageSize)
+        Flux<BaseHourse> hourse = hourseRepository.findByTypeAndIsDeleted(pageable,type,"0");
+        return ServerResponseUtil.createByMono(FrontData.build(count,hourse.collectList().onErrorResume(t -> Mono.just(empty)),pageNumber,pageSize)
                 .map(data -> new FrontResponse(200,"success",data)),FrontResponse.class)
                 .onErrorResume(throwable -> ServerResponseUtil.error());
     }

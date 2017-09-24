@@ -120,6 +120,7 @@ public class Userhandler {
         Mono<PageRequest> page = Mono.just(new PageRequest());
         String name = page.block().getName();
         page.subscribe(System.out::println);
+        Flux.just(1,2,3,4,5,6,7).buffer(2).take(3).subscribe(System.out::println);
         System.out.println(null == null);
         Flux.just(1,2,3,4,5,6,7).buffer(10).elementAt(0).subscribe(System.out::println);
     }
