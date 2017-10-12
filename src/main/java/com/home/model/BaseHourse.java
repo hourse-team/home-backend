@@ -24,7 +24,7 @@ public class BaseHourse {
 
     private String updateBy;
 
-    @Indexed(direction = IndexDirection.ASCENDING)
+    @Indexed(direction = IndexDirection.ASCENDING,sparse = true)
     private Date createDate;
 
     private Date updateDate;
