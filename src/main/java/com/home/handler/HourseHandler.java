@@ -152,7 +152,7 @@ public class HourseHandler {
         Pageable pageable = org.springframework.data.domain.PageRequest.of(pageNumber,pageSize, Sort.Direction.DESC,"createDate");
         Mono<Long> count = hourseRepository.countByTypeAndIsDeleted(type,"0");
         Flux<BaseHourse> hourse = hourseRepository.findByTypeAndIsDeleted(pageable,type,"0").subscribeOn(Schedulers.elastic());
-        return ServerResponseUtil.createByMono(FrontData.build(count,hourse.collectList(),pageNumber,pageSize)
+        return ServerResponseUtil.createByMono(FrontData.build(count,hourse.collectList().onErrorResume(t -> Mono.just(empty)),pageNumber,pageSize)
                 .map(data -> new FrontResponse(200,"success",data)),FrontResponse.class)
                 .onErrorResume(throwable -> ServerResponseUtil.error());
     }
