@@ -9,8 +9,8 @@
          "msg": "success",
          "data": {
              "id": "59aad95f21d07310f8e8d453",
-             "username": "siwang",
-             "password": "xuyan",
+             "username": "",
+             "password": "",
              "type": 1
          }
      }
